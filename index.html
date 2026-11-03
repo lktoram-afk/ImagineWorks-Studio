@@ -855,6 +855,9 @@
         if (!modal) return;
         modal.classList.toggle('open', shouldOpen);
         document.body.classList.toggle('no-scroll', shouldOpen);
+        if (!shouldOpen && modalId === 'pinModal') {
+          state.activePin = null;
+        }
       };
       const showModal = id => toggleModal(id, true);
       const closeModal = id => toggleModal(id, false);
@@ -877,7 +880,15 @@
       function initSupabase() {
         const supabaseUrl = String(CONFIG.SUPABASE_URL || '').trim();
         const supabaseKey = String(CONFIG.SUPABASE_ANON_KEY || '').trim();
-        const ready = supabaseUrl && supabaseKey && supabaseUrl.includes('supabase.co') && supabaseKey.length > 20 && !supabaseKey.includes('YOUR_') && !supabaseKey.includes('ISI_');
+        const placeholderPattern = /(YOUR_|ISI_|REPLACE|CHANGE_ME|\*{3,})/i;
+        const ready = (
+          supabaseUrl &&
+          supabaseKey &&
+          supabaseUrl.includes('supabase.co') &&
+          supabaseUrl !== 'https://YOUR_PROJECT_REF.supabase.co' &&
+          supabaseKey.length > 20 &&
+          !placeholderPattern.test(supabaseKey)
+        );
         if (!ready) {
           state.demoMode = true;
           state.events = structuredClone(DEMO_EVENTS);
@@ -1587,6 +1598,21 @@
 
       function bindGlobalActions() {
         bindDropzoneHandlers();
+
+        document.addEventListener('click', (event) => {
+          const backdrop = event.target instanceof Element ? event.target.closest('.modal-backdrop.open') : null;
+          if (backdrop && backdrop === event.target) {
+            closeModal(backdrop.id);
+          }
+        });
+
+        document.addEventListener('keydown', (event) => {
+          if (event.key === 'Escape') {
+            closeModal('pinModal');
+            closeModal('checkoutModal');
+            closeModal('adminLoginModal');
+          }
+        });
 
         $('#heroBookButton')?.addEventListener('click', () => {
           document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
