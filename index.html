@@ -656,6 +656,11 @@
           <div class="panel-box bg-[#111110]">
             <h3 class="text-xl font-semibold">Daftar event</h3>
             <div id="adminEventList" class="table-scroll mt-4"></div>
+
+            <div class="mt-8">
+              <h3 class="text-xl font-semibold">Daftar Pesanan &amp; Auto-PIN</h3>
+              <div id="adminOrdersList" class="table-scroll mt-4"></div>
+            </div>
           </div>
         </div>
       </section>
@@ -760,6 +765,52 @@
         </label>
         <button id="adminLoginButton" class="btn-primary w-full" type="button">Masuk ke Panel</button>
         <p class="text-[.68rem] leading-5 text-stone-500">Pastikan Supabase Auth sudah aktif dan config di <code>env.js</code> terisi. Jika belum, gunakan mode demo untuk pengujian lokal.</p>
+      </div>
+    </div>
+  </div>
+
+  <div id="editAlbumModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="editAlbumTitle">
+    <div class="modal-card modal-wide">
+      <div class="flex items-center justify-between gap-4 border-b border-white/10 p-5">
+        <div>
+          <p class="eyebrow">Album</p>
+          <h2 id="editAlbumTitle" class="serif mt-2 text-3xl">Edit Album</h2>
+        </div>
+        <button class="close-modal grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="editAlbumModal" aria-label="Tutup" type="button">×</button>
+      </div>
+
+      <div class="p-5 sm:p-6">
+        <div class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+          <div>
+            <div class="mb-4 flex items-center justify-between">
+              <h3 class="text-lg font-semibold">Foto album saat ini</h3>
+              <span id="editAlbumCount" class="text-xs uppercase tracking-[.15em] text-stone-400">0 foto</span>
+            </div>
+            <div id="editAlbumPhotoGrid" class="grid max-h-[60vh] grid-cols-2 gap-4 overflow-y-auto overscroll-contain pr-2 md:grid-cols-3" style="-webkit-overflow-scrolling: touch;"></div>
+          </div>
+
+          <div class="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div>
+              <p class="field-label">Tambah foto baru</p>
+              <div id="editAlbumDropZone" class="dropzone mt-2">
+                <input id="editAlbumInput" type="file" accept="image/*" multiple />
+                <div class="flex items-center justify-between gap-3 text-sm text-stone-200">
+                  <span>Upload foto tambahan</span>
+                  <span class="rounded-full border border-gold/20 bg-gold/10 px-2 py-1 text-[.62rem] uppercase tracking-[.12em] text-gold">Tambah</span>
+                </div>
+                <p class="text-[.68rem] leading-5 text-stone-400">Foto baru akan ditambahkan ke array <code>photo_urls</code> album.</p>
+                <div id="editAlbumUploadStatus" class="hidden text-[.68rem] text-emerald-300"></div>
+              </div>
+            </div>
+
+            <div class="rounded-xl border border-white/10 bg-[#171716] p-4">
+              <p class="text-xs uppercase tracking-[.18em] text-stone-500">Informasi Album</p>
+              <p id="editAlbumMeta" class="mt-3 text-sm text-stone-300">Tidak ada album dipilih.</p>
+            </div>
+
+            <button id="saveEditAlbumBtn" class="btn-primary w-full" type="button">Simpan Perubahan Album</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -887,6 +938,7 @@
       const state = {
         supabase: null,
         events: [],
+        orders: [],
         selectedEvent: null,
         selectedGalleryEvent: null,
         gallerySelectionSet: new Set(),
@@ -900,7 +952,9 @@
         uploadedPhotoUrls: [],
         uploadBusy: false,
         heroSlideIndex: 0,
-        heroTimer: null
+        heroTimer: null,
+        editAlbumEventId: null,
+        editAlbumPhotoList: []
       };
 
       const $ = (selector, root = document) => root.querySelector(selector);
@@ -1138,6 +1192,33 @@
 
       function saveStoredPurchasedSessions(list) {
         localStorage.setItem('imagineworks-purchased-sessions', JSON.stringify(list));
+      }
+
+      async function loadOrders() {
+        if (state.demoMode) {
+          state.orders = getStoredPurchasedSessions().sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+          renderOrdersTable();
+          return;
+        }
+
+        if (!state.supabase) {
+          state.orders = getStoredPurchasedSessions();
+          renderOrdersTable();
+          return;
+        }
+
+        try {
+          const { data, error } = await state.supabase
+            .from('purchased_sessions')
+            .select('*')
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          state.orders = Array.isArray(data) ? data : getStoredPurchasedSessions();
+          renderOrdersTable();
+        } catch (error) {
+          state.orders = getStoredPurchasedSessions();
+          renderOrdersTable();
+        }
       }
 
       async function loadEvents() {
@@ -1531,7 +1612,7 @@
           updateCheckoutTotal();
         });
 
-        $('#whatsappCheckoutButton')?.addEventListener('click', () => {
+        $('#whatsappCheckoutButton')?.addEventListener('click', async () => {
           const name = $('#buyerNameInput').value.trim();
           const phone = $('#buyerPhoneInput').value.trim();
           const event = state.selectedEvent;
@@ -1542,14 +1623,25 @@
           const selectedPhotos = getCheckoutSelectedPhotos(event);
           if (selectedPhotos.length) {
             state.selectedPhotoUrls = selectedPhotos;
-            state.checkoutSessionData = { event_id: event.id, selected_photo_urls: selectedPhotos, selected_photo_ids: [] };
+            state.checkoutSessionData = {
+              event_id: event.id,
+              selected_photo_urls: selectedPhotos,
+              selected_photo_ids: [],
+              buyer_name: name,
+              buyer_phone: phone,
+              total_price: total
+            };
             try { localStorage.setItem('imagineworks-checkout-selection', JSON.stringify(state.checkoutSessionData)); } catch {}
           }
 
+          const generatedPin = await createPurchasedSession(event, name, phone, total);
+          if (!generatedPin) {
+            return;
+          }
+
           const targetPhone = formatWhatsAppNumber(CONFIG.BOOKING_WHATSAPP || '6285349991313');
-          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Mohon PIN aksesnya. Nama: ${name}. WhatsApp: ${phone}.`; 
-          const formattedPhone = String(targetPhone || '').replace(/^0/, '62').replace(/[^0-9]/g, '');
-          const cleanPhone = formattedPhone || '6285349991313';
+          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Nama: ${name}. WhatsApp: ${phone}. Jumlah foto: ${selectedPhotos.length}. Kode PIN: ${generatedPin}.`;
+          const cleanPhone = String(targetPhone || '').replace(/^0/, '62').replace(/[^0-9]/g, '') || '6285349991313';
           const link = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
           window.open(link, '_blank', 'noopener');
           setToast('Pesan WhatsApp berhasil dibuat.');
@@ -1594,8 +1686,12 @@
             <td>${escapeHtml(event.event_date)}</td>
             <td>${escapeHtml(event.price_type === 'package' ? 'Paket' : 'Per Photo')}</td>
             <td>${money(event.price)}</td>
-            <td><button class="btn-primary generate-pin-btn" data-event-id="${event.id}" type="button">Terbitkan PIN</button></td>
-            <td><button class="btn-danger delete-event-btn" data-event-id="${event.id}" type="button">Hapus Event</button></td>
+            <td>
+              <div class="flex gap-2">
+                <button class="btn-secondary edit-album-btn" data-event-id="${event.id}" type="button">Edit Album</button>
+                <button class="btn-danger delete-event-btn" data-event-id="${event.id}" type="button">Hapus Event</button>
+              </div>
+            </td>
           </tr>
         `).join('');
 
@@ -1608,20 +1704,19 @@
                 <th>Tanggal</th>
                 <th>Harga</th>
                 <th>Nominal</th>
-                <th>PIN</th>
-                <th>Hapus</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>${rows}</tbody>
           </table>
         `;
 
-        $$('[data-event-id].generate-pin-btn').forEach(button => {
+        $$('[data-event-id].edit-album-btn').forEach(button => {
           button.addEventListener('click', async () => {
             const eventId = button.dataset.eventId;
             const event = state.events.find(item => item.id === eventId);
             if (!event) return;
-            await createPurchasedSession(event);
+            openEditAlbumModal(event);
           });
         });
 
@@ -1629,6 +1724,91 @@
           button.addEventListener('click', async () => {
             const eventId = button.dataset.eventId;
             await deleteEvent(eventId);
+          });
+        });
+      }
+
+      function renderOrdersTable() {
+        const target = $('#adminOrdersList');
+        if (!target) return;
+
+        const orders = Array.isArray(state.orders) ? state.orders : [];
+        if (!orders.length) {
+          target.innerHTML = '<p class="text-sm text-stone-400">Belum ada pesanan masuk.</p>';
+          return;
+        }
+
+        const rows = orders.map(order => {
+          const event = state.events.find(item => item.id === order.album_id || item.id === order.event_id) || {};
+          const pinValue = order.pin_hash || order.pin_ciphertext || order.pin_code || '—';
+          const buyerName = order.buyer_name || order.customer_name || '—';
+          const buyerPhone = order.buyer_phone || order.customer_phone || '—';
+          const albumName = event.title || order.album_name || 'Album';
+          const photoCount = Array.isArray(order.selected_photo_urls) ? order.selected_photo_urls.length : (Number(order.total_items || 0) || 1);
+          const totalRp = Number(order.total_price || 0);
+          const createdAt = order.created_at ? new Date(order.created_at).toLocaleString('id-ID') : (order.created_at || '—');
+
+          return `
+            <tr>
+              <td>${escapeHtml(createdAt)}</td>
+              <td>${escapeHtml(buyerName)}</td>
+              <td>${escapeHtml(buyerPhone)}</td>
+              <td>${escapeHtml(albumName)}</td>
+              <td>${escapeHtml(String(photoCount))}</td>
+              <td>${money(totalRp)}</td>
+              <td><span class="inline-flex rounded-full border border-emerald-400/30 bg-emerald-500/10 px-2 py-1 text-[.62rem] font-semibold uppercase tracking-[.12em] text-emerald-300">${escapeHtml(pinValue)}</span></td>
+              <td>
+                <div class="flex flex-wrap gap-2">
+                  <button class="btn-secondary copy-order-pin-btn" data-pin="${escapeHtml(pinValue)}" type="button">Salin PIN</button>
+                  <button class="btn-primary send-order-wa-btn" data-name="${escapeHtml(buyerName)}" data-phone="${escapeHtml(buyerPhone)}" data-album="${escapeHtml(albumName)}" data-total="${totalRp}" data-pin="${escapeHtml(pinValue)}" type="button">Kirim WA</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        target.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Tgl/Waktu</th>
+                <th>Nama Pembeli</th>
+                <th>WhatsApp</th>
+                <th>Album</th>
+                <th>Jumlah Foto</th>
+                <th>Total Rp</th>
+                <th>KODE PIN</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+
+        $$('[data-pin].copy-order-pin-btn').forEach(button => {
+          button.addEventListener('click', async () => {
+            const pin = button.dataset.pin;
+            if (!pin) return;
+            try {
+              await navigator.clipboard.writeText(pin);
+              setToast('PIN berhasil disalin.');
+            } catch {
+              setToast('PIN tidak bisa disalin otomatis.');
+            }
+          });
+        });
+
+        $$('[data-phone].send-order-wa-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const buyerName = button.dataset.name || 'Pembeli';
+            const buyerPhone = button.dataset.phone || '';
+            const album = button.dataset.album || 'Album';
+            const total = Number(button.dataset.total || 0);
+            const pinValue = button.dataset.pin || '';
+            const targetPhone = formatWhatsAppNumber(CONFIG.BOOKING_WHATSAPP || '6285349991313');
+            const message = `Halo Admin ImagineWorks, berikut detail pesanan:\nNama: ${buyerName}\nWhatsApp: ${buyerPhone}\nAlbum: ${album}\nTotal Bayar: Rp ${Number(total).toLocaleString('id-ID')}\nKode PIN: ${pinValue}`;
+            const finalLink = `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`;
+            window.open(finalLink, '_blank', 'noopener');
           });
         });
       }
@@ -1873,17 +2053,29 @@
         }
       }
 
-      async function createPurchasedSession(event) {
+      async function createPurchasedSession(event, buyerName = '', buyerPhone = '', totalPrice = 0) {
         const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
         const dummyIv = 'iv-' + Date.now();
         const expiresAt = new Date(Date.now() + (60 * 24 * 60 * 60 * 1000)).toISOString();
         const selectedPhotoUrls = getCheckoutSelectedPhotos(event);
+        const orderId = 'ORD-' + Date.now();
+        const finalTotalPrice = Number(totalPrice || 0) || Number(event?.price || 0) || 0;
         const pinData = {
-          order_id: 'ORD-' + Date.now(),
+          order_id: orderId,
           album_id: event.id,
+          event_id: event.id,
+          event_title: event.title,
+          buyer_name: buyerName,
+          buyer_phone: buyerPhone,
+          total_price: finalTotalPrice,
           pin_hash: generatedPin,
           pin_ciphertext: generatedPin,
-          pin_iv: dummyIv
+          pin_iv: dummyIv,
+          selected_photo_urls: selectedPhotoUrls,
+          selected_photo_ids: [],
+          drive_url: '-',
+          expires_at: expiresAt,
+          created_at: new Date().toISOString()
         };
 
         if (state.demoMode) {
@@ -1891,45 +2083,54 @@
           const sessionRecord = {
             ...pinData,
             pin_code: generatedPin,
-            selected_photo_urls: selectedPhotoUrls,
-            selected_photo_ids: [],
             id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
-            event_id: event.id,
-            event_title: event.title,
-            total_price: Number(event.price || 0),
-            expires_at: expiresAt,
             created_at: new Date().toISOString()
           };
           sessions.unshift(sessionRecord);
           saveStoredPurchasedSessions(sessions);
+          state.orders = sessions;
+          renderOrdersTable();
           showGeneratedPinModal(event, generatedPin, expiresAt);
           setToast(`PIN berhasil dibuat: ${generatedPin}`);
-          return;
+          return generatedPin;
         }
 
         try {
-          const { error } = await state.supabase.from('purchased_sessions').insert(pinData);
+          const { error } = await state.supabase.from('purchased_sessions').insert({
+            order_id: pinData.order_id,
+            album_id: pinData.album_id,
+            event_id: pinData.event_id,
+            event_title: pinData.event_title,
+            buyer_name: pinData.buyer_name,
+            buyer_phone: pinData.buyer_phone,
+            total_price: pinData.total_price,
+            pin_hash: pinData.pin_hash,
+            pin_ciphertext: pinData.pin_ciphertext,
+            pin_iv: pinData.pin_iv,
+            drive_url: pinData.drive_url,
+            selected_photo_urls: pinData.selected_photo_urls,
+            selected_photo_ids: pinData.selected_photo_ids,
+            expires_at: pinData.expires_at,
+            created_at: pinData.created_at
+          });
           if (error) throw error;
           const stored = getStoredPurchasedSessions();
           stored.unshift({
             ...pinData,
             pin_code: generatedPin,
-            selected_photo_urls: selectedPhotoUrls,
-            selected_photo_ids: [],
-            id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
-            event_id: event.id,
-            event_title: event.title,
-            total_price: Number(event.price || 0),
-            expires_at: expiresAt,
-            created_at: new Date().toISOString()
+            id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`
           });
           saveStoredPurchasedSessions(stored);
+          state.orders = stored;
+          renderOrdersTable();
           showGeneratedPinModal(event, generatedPin, expiresAt);
           setToast(`PIN berhasil dibuat: ${generatedPin}`);
+          return generatedPin;
         } catch (error) {
           const detail = getSupabaseErrorDetail(error);
           setToast(`Gagal menerbitkan PIN otomatis: ${detail}`);
           console.error(error);
+          return null;
         }
       }
 
@@ -2127,6 +2328,126 @@
         }
       }
 
+      function renderEditAlbumGrid() {
+        const grid = $('#editAlbumPhotoGrid');
+        const count = $('#editAlbumCount');
+        const meta = $('#editAlbumMeta');
+        if (!grid) return;
+
+        const albumPhotos = Array.isArray(state.editAlbumPhotoList) && state.editAlbumPhotoList.length
+          ? state.editAlbumPhotoList
+          : [];
+
+        if (count) count.textContent = `${albumPhotos.length} foto`;
+
+        if (!albumPhotos.length) {
+          grid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-white/10 bg-black/20 p-5 text-center text-sm text-stone-400">Belum ada foto di album ini.</div>';
+          if (meta) meta.textContent = 'Album belum memiliki foto. Tambahkan foto baru di panel sebelah.';
+          return;
+        }
+
+        if (meta) {
+          const photoCount = albumPhotos.length;
+          const event = state.events.find(item => item.id === state.editAlbumEventId) || null;
+          meta.textContent = `${event?.title || 'Album'} · ${photoCount} foto tersimpan`;
+        }
+
+        grid.innerHTML = albumPhotos.map((photoUrl, index) => `
+          <div class="group relative overflow-hidden rounded-2xl border border-white/10 bg-[#171716]">
+            <img src="${photoUrl}" alt="Foto album ${index + 1}" class="h-36 w-full object-cover md:h-40" loading="lazy" />
+            <button type="button" class="remove-edit-photo-btn absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-white/20 bg-black/60 text-sm text-white transition hover:bg-rose-500/90" data-photo-url="${encodeURIComponent(photoUrl)}" aria-label="Hapus foto">×</button>
+          </div>
+        `).join('');
+
+        $$('.remove-edit-photo-btn').forEach(button => {
+          button.addEventListener('click', () => {
+            const photoUrl = decodeURIComponent(button.dataset.photoUrl || '');
+            state.editAlbumPhotoList = state.editAlbumPhotoList.filter(item => item !== photoUrl);
+            renderEditAlbumGrid();
+          });
+        });
+      }
+
+      function openEditAlbumModal(event) {
+        if (!event) return;
+        state.editAlbumEventId = event.id;
+        state.editAlbumPhotoList = normalizeAlbumPhotos(event);
+        renderEditAlbumGrid();
+        showModal('editAlbumModal');
+      }
+
+      async function handleEditAlbumUpload() {
+        const input = $('#editAlbumInput');
+        if (!input || !input.files || !input.files.length) return;
+
+        const files = Array.from(input.files).filter(file => file && file.type && file.type.startsWith('image/'));
+        if (!files.length) {
+          setToast('File yang dipilih harus berupa gambar.');
+          return;
+        }
+
+        try {
+          const uploadedUrls = state.demoMode
+            ? files.map(file => URL.createObjectURL(file))
+            : await uploadFiles(files);
+
+          const uniqueUrls = [...state.editAlbumPhotoList, ...uploadedUrls.filter(Boolean)];
+          state.editAlbumPhotoList = [...new Set(uniqueUrls.filter(Boolean))];
+          renderEditAlbumGrid();
+          input.value = '';
+          setToast(`${uploadedUrls.length} foto baru berhasil ditambahkan.`);
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          setToast(`Gagal menambah foto: ${detail}`);
+          console.error('handleEditAlbumUpload:', error);
+        }
+      }
+
+      async function saveEditAlbumChanges() {
+        const eventId = state.editAlbumEventId;
+        if (!eventId) return;
+
+        const photoUrls = Array.isArray(state.editAlbumPhotoList) ? state.editAlbumPhotoList.filter(Boolean) : [];
+        const event = state.events.find(item => item.id === eventId);
+        if (!event) return;
+
+        const patch = {
+          photo_urls: photoUrls,
+          photo_url: photoUrls[0] || event.photo_url || '',
+          cover_url: photoUrls[0] || event.cover_url || event.photo_url || '',
+          updated_at: new Date().toISOString()
+        };
+
+        if (state.demoMode) {
+          const updatedEvents = state.events.map(item => item.id === eventId ? { ...item, ...patch } : item);
+          state.events = updatedEvents;
+          saveStoredEvents(updatedEvents);
+          renderAlbumGrid();
+          renderAdminTable();
+          updateHeroCard();
+          closeModal('editAlbumModal');
+          setToast('Album berhasil diperbarui.');
+          return;
+        }
+
+        try {
+          if (!state.supabase) throw new Error('Supabase belum siap.');
+          const { error } = await state.supabase.from('events_album').update(patch).eq('id', eventId);
+          if (error) throw error;
+
+          state.events = state.events.map(item => item.id === eventId ? { ...item, ...patch } : item);
+          renderAlbumGrid();
+          renderAdminTable();
+          updateHeroCard();
+          closeModal('editAlbumModal');
+          setToast('Album berhasil diperbarui.');
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : String(error);
+          setToast(`Gagal menyimpan album: ${detail}`);
+          console.error('saveEditAlbumChanges:', error);
+        }
+      }
+
       function bindDropzoneHandlers() {
         const dropZone = $('#eventPhotoDropZone');
         const fileInput = $('#eventPhotoInput');
@@ -2182,6 +2503,39 @@
       function bindGlobalActions() {
         bindDropzoneHandlers();
 
+        $('#editAlbumInput')?.addEventListener('change', handleEditAlbumUpload);
+        $('#saveEditAlbumBtn')?.addEventListener('click', saveEditAlbumChanges);
+
+        const editAlbumDropZone = $('#editAlbumDropZone');
+        const editAlbumInput = $('#editAlbumInput');
+        if (editAlbumDropZone && editAlbumInput) {
+          ['dragenter', 'dragover'].forEach(type => {
+            editAlbumDropZone.addEventListener(type, event => {
+              event.preventDefault();
+              editAlbumDropZone.classList.add('dragover');
+            });
+          });
+
+          ['dragleave', 'drop'].forEach(type => {
+            editAlbumDropZone.addEventListener(type, event => {
+              event.preventDefault();
+              editAlbumDropZone.classList.remove('dragover');
+            });
+          });
+
+          editAlbumDropZone.addEventListener('drop', event => {
+            const files = Array.from(event.dataTransfer?.files || []).filter(file => file.type && file.type.startsWith('image/'));
+            if (!files.length) {
+              setToast('File yang dipasukkan harus berupa gambar.');
+              return;
+            }
+            const transfer = new DataTransfer();
+            files.forEach(file => transfer.items.add(file));
+            editAlbumInput.files = transfer.files;
+            handleEditAlbumUpload();
+          });
+        }
+
         document.addEventListener('click', (event) => {
           const backdrop = event.target instanceof Element ? event.target.closest('.modal-backdrop.open') : null;
           if (backdrop && backdrop === event.target) {
@@ -2195,6 +2549,7 @@
             closeModal('checkoutModal');
             closeModal('galleryDetailModal');
             closeModal('adminLoginModal');
+            closeModal('editAlbumModal');
           }
         });
 
@@ -2256,6 +2611,7 @@
         bindCheckoutControls();
         populateDemoFields();
         loadEvents();
+        loadOrders();
       }
 
       init();
