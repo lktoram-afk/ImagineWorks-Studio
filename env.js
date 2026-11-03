@@ -37,7 +37,7 @@ window.IMAGINEWORKS_CONFIG = Object.freeze({
   }),
 
   // Nomor WhatsApp tanpa tanda +. Contoh: 6281234567890
-  BOOKING_WHATSAPP: '085349991313',
+  BOOKING_WHATSAPP: '6285349991313',
 
   // Untuk mode admin demo lokal bila Supabase Auth belum aktif.
   ADMIN_EMAIL: 'admin@imagineworks.id',
