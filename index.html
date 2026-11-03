@@ -768,7 +768,7 @@
     <div class="modal-card p-5 sm:p-7 text-center">
       <button class="close-modal absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full border border-white/10 text-stone-400" data-close="pinModal" aria-label="Tutup" type="button">×</button>
       <p class="eyebrow">PIN Terbit</p>
-      <h2 id="pinModalTitle" class="serif mt-2 text-3xl">Akses foto siap dibuat</h2>
+      <h2 id="pinModalTitle" class="serif mt-2 text-3xl">Kode PIN Diterbitkan</h2>
       <p id="pinModalEventTitle" class="mt-3 text-sm text-stone-400"></p>
       <div id="pinModalValue" class="pin-box mt-6 rounded-2xl border border-gold/25 bg-black/25 py-5 text-3xl font-bold text-gold">000000</div>
       <p id="pinModalExpiry" class="mt-4 text-xs text-stone-500"></p>
@@ -777,7 +777,7 @@
   </div>
 
   <div id="galleryDetailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="galleryDetailTitle">
-    <div class="modal-card modal-wide overflow-hidden">
+    <div class="modal-card modal-wide">
       <div class="flex items-center justify-between gap-4 border-b border-white/10 p-5">
         <div>
           <p class="eyebrow">Galeri Album</p>
@@ -786,7 +786,7 @@
         <button class="close-modal grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="galleryDetailModal" aria-label="Tutup" type="button">×</button>
       </div>
       <div class="p-5 sm:p-6">
-        <div id="galleryDetailGrid" class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4"></div>
+        <div id="galleryDetailGrid" class="grid max-h-[80vh] grid-cols-2 gap-4 overflow-y-auto overscroll-contain pr-2 md:grid-cols-3 lg:grid-cols-4" style="-webkit-overflow-scrolling: touch;"></div>
       </div>
       <div class="sticky bottom-0 border-t border-white/10 bg-[#141412]/95 p-4 backdrop-blur-sm">
         <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -890,6 +890,8 @@
         selectedEvent: null,
         selectedGalleryEvent: null,
         gallerySelectionSet: new Set(),
+        selectedPhotoUrls: [],
+        checkoutSessionData: null,
         quantity: 1,
         adminMode: false,
         demoMode: true,
@@ -943,6 +945,41 @@
 
         const fallback = [event?.cover_url, event?.photo_url, event?.gallery_photos].flat().filter(Boolean);
         return fallback.map(item => safeUrl(item)).filter(Boolean);
+      };
+      const getCheckoutSelectedPhotos = event => {
+        if (!event) return [];
+
+        const photoPool = normalizeAlbumPhotos(event);
+        const selected = Array.from(state.gallerySelectionSet || []);
+
+        if (selected.length) {
+          const cleanSelected = selected.map(item => safeUrl(item)).filter(Boolean);
+          if (cleanSelected.length) return cleanSelected;
+        }
+
+        if (!event.price_type || event.price_type === 'package') {
+          return photoPool.length ? photoPool : [safeUrl(event.cover_url) || safeUrl(event.photo_url) || './assets/imagineworks-hero.jpg'];
+        }
+
+        const quantity = Math.max(1, Number(state.quantity) || 1);
+        return photoPool.slice(0, Math.min(quantity, photoPool.length || 1));
+      };
+      const persistCheckoutSelection = event => {
+        const selectedUrls = getCheckoutSelectedPhotos(event);
+        const payload = {
+          event_id: event?.id || null,
+          selected_photo_urls: selectedUrls,
+          selected_photo_ids: [],
+          created_at: new Date().toISOString()
+        };
+        state.selectedPhotoUrls = selectedUrls;
+        state.checkoutSessionData = payload;
+        try {
+          localStorage.setItem('imagineworks-checkout-selection', JSON.stringify(payload));
+        } catch {
+          // ignore localStorage errors
+        }
+        return payload;
       };
       const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
       const setToast = message => {
@@ -1462,6 +1499,9 @@
         const unitPrice = Number(event.price_per_unit || event.price || 0);
         const total = event.price_type === 'package' ? Number(event.price || 0) : unitPrice * quantity;
 
+        state.selectedPhotoUrls = getCheckoutSelectedPhotos(event);
+        state.checkoutSessionData = persistCheckoutSelection(event);
+
         $('#checkoutEventTitle').textContent = event.title;
         $('#unitPriceLabel').textContent = event.price_type === 'package' ? 'Paket event' : `Rp ${unitPrice.toLocaleString('id-ID')} / foto`;
         $('#qtyValue').textContent = String(event.price_type === 'package' ? 1 : quantity);
@@ -1499,8 +1539,15 @@
           if (!name || !phone) return setToast('Isi nama dan nomor WhatsApp sebelum konfirmasi.');
 
           const total = getSelectedTotal();
+          const selectedPhotos = getCheckoutSelectedPhotos(event);
+          if (selectedPhotos.length) {
+            state.selectedPhotoUrls = selectedPhotos;
+            state.checkoutSessionData = { event_id: event.id, selected_photo_urls: selectedPhotos, selected_photo_ids: [] };
+            try { localStorage.setItem('imagineworks-checkout-selection', JSON.stringify(state.checkoutSessionData)); } catch {}
+          }
+
           const targetPhone = formatWhatsAppNumber(CONFIG.BOOKING_WHATSAPP || '6285349991313');
-          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Mohon PIN aksesnya. Nama: ${name}. WhatsApp: ${phone}.`;
+          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Mohon PIN aksesnya. Nama: ${name}. WhatsApp: ${phone}.`; 
           const formattedPhone = String(targetPhone || '').replace(/^0/, '62').replace(/[^0-9]/g, '');
           const cleanPhone = formattedPhone || '6285349991313';
           const link = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
@@ -1515,6 +1562,8 @@
         const unitPrice = Number(event.price_per_unit || event.price || 0);
         const quantity = event.price_type === 'package' ? 1 : state.quantity;
         const total = event.price_type === 'package' ? Number(event.price || 0) : unitPrice * quantity;
+        state.selectedPhotoUrls = getCheckoutSelectedPhotos(event);
+        state.checkoutSessionData = persistCheckoutSelection(event);
         $('#qtyValue').textContent = String(quantity);
         $('#checkoutTotal').textContent = `Rp ${total.toLocaleString('id-ID')}`;
         $('#transferAmountText').textContent = `Rp ${total.toLocaleString('id-ID')}`;
@@ -1825,18 +1874,33 @@
       }
 
       async function createPurchasedSession(event) {
-        const generatedPin = String(Math.floor(100000 + Math.random() * 900000));
+        const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
+        const dummyIv = 'iv-' + Date.now();
         const expiresAt = new Date(Date.now() + (60 * 24 * 60 * 60 * 1000)).toISOString();
+        const selectedPhotoUrls = getCheckoutSelectedPhotos(event);
         const pinData = {
-          pin_code: generatedPin,
-          photo_url: event.photo_url || (event.photo_urls ? event.photo_urls[0] : ''),
-          expires_at: expiresAt,
-          created_at: new Date().toISOString()
+          order_id: 'ORD-' + Date.now(),
+          album_id: event.id,
+          pin_hash: generatedPin,
+          pin_ciphertext: generatedPin,
+          pin_iv: dummyIv
         };
 
         if (state.demoMode) {
           const sessions = getStoredPurchasedSessions();
-          sessions.unshift({ ...pinData, id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`, event_id: event.id, event_title: event.title, total_price: Number(event.price || 0) });
+          const sessionRecord = {
+            ...pinData,
+            pin_code: generatedPin,
+            selected_photo_urls: selectedPhotoUrls,
+            selected_photo_ids: [],
+            id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+            event_id: event.id,
+            event_title: event.title,
+            total_price: Number(event.price || 0),
+            expires_at: expiresAt,
+            created_at: new Date().toISOString()
+          };
+          sessions.unshift(sessionRecord);
           saveStoredPurchasedSessions(sessions);
           showGeneratedPinModal(event, generatedPin, expiresAt);
           setToast(`PIN berhasil dibuat: ${generatedPin}`);
@@ -1844,8 +1908,22 @@
         }
 
         try {
-          const { error } = await state.supabase.from('purchased_sessions').insert([pinData]);
+          const { error } = await state.supabase.from('purchased_sessions').insert(pinData);
           if (error) throw error;
+          const stored = getStoredPurchasedSessions();
+          stored.unshift({
+            ...pinData,
+            pin_code: generatedPin,
+            selected_photo_urls: selectedPhotoUrls,
+            selected_photo_ids: [],
+            id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+            event_id: event.id,
+            event_title: event.title,
+            total_price: Number(event.price || 0),
+            expires_at: expiresAt,
+            created_at: new Date().toISOString()
+          });
+          saveStoredPurchasedSessions(stored);
           showGeneratedPinModal(event, generatedPin, expiresAt);
           setToast(`PIN berhasil dibuat: ${generatedPin}`);
         } catch (error) {
@@ -1861,17 +1939,23 @@
 
         if (state.demoMode) {
           const sessions = getStoredPurchasedSessions();
-          return sessions.find(item => item.pin_code === clean || item.pin === clean) || null;
+          return sessions.find(item =>
+            item.pin_code === clean ||
+            item.pin === clean ||
+            item.pin_hash === clean ||
+            item.pin_ciphertext === clean
+          ) || null;
         }
 
         try {
           const { data, error } = await state.supabase
             .from('purchased_sessions')
             .select('*')
-            .eq('pin_code', clean)
-            .maybeSingle();
+            .or(`pin_hash.eq.${clean},pin_ciphertext.eq.${clean}`)
+            .limit(1);
           if (error) throw error;
-          return data || null;
+          const matched = (data || []).find(item => String(item.pin_hash || '').trim() === clean || String(item.pin_ciphertext || '').trim() === clean);
+          return matched || null;
         } catch (error) {
           return null;
         }
@@ -1928,15 +2012,32 @@
           return;
         }
 
-        const remaining = getDaysRemaining(session.expires_at);
+        const remaining = getDaysRemaining(session.expires_at || new Date(Date.now() + 86400000).toISOString());
         if (remaining <= 0) {
           setResult('#photoAccessResult', 'PIN sudah kedaluwarsa. Akses foto original diblokir.', true);
           return;
         }
 
-        const fileUrl = safeUrl(session.photo_url) || safeUrl(session.cover_url) || '';
-        const message = `PIN valid. Sisa waktu akses: ${remaining} hari. <a href="${fileUrl}" target="_blank" rel="noopener" class="text-gold underline">Download Foto Asli HD</a>`;
+        const allowedPhotos = Array.isArray(session.selected_photo_urls) && session.selected_photo_urls.length
+          ? session.selected_photo_urls
+          : (Array.isArray(session.photo_urls) ? session.photo_urls : (session.photo_url ? [session.photo_url] : []));
+        const validUrls = allowedPhotos.map(item => safeUrl(item)).filter(Boolean);
+
+        if (!validUrls.length) {
+          setResult('#photoAccessResult', 'Tidak ada foto yang dapat diakses dengan PIN ini.', true);
+          return;
+        }
+
+        const photoLinks = validUrls.map((url, index) => `<a href="${url}" target="_blank" rel="noopener" class="text-gold underline">Foto ${index + 1}</a>`).join(' · ');
+        const downloadAllBtn = `<button id="downloadAllPhotosBtn" class="btn-primary mt-3" type="button" data-urls='${JSON.stringify(validUrls)}'>Unduh Semua Foto HD</button>`;
+        const message = `PIN valid. Sisa waktu akses: ${remaining} hari.<div class="mt-3 flex flex-wrap gap-3 text-sm">${photoLinks}</div>${downloadAllBtn}`;
         setResult('#photoAccessResult', message, false);
+
+        $('#downloadAllPhotosBtn')?.addEventListener('click', () => {
+          const urls = JSON.parse($('#downloadAllPhotosBtn').dataset.urls || '[]');
+          urls.forEach(url => window.open(url, '_blank', 'noopener'));
+          setToast('Memulai unduhan foto HD yang diizinkan.');
+        });
       }
 
       async function loginAdmin() {
