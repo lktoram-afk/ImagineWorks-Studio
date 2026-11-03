@@ -713,16 +713,18 @@
         </label>
       </div>
 
-      <div class="mt-5 rounded-xl border border-gold/20 bg-gold/[.05] p-4">
-        <p class="text-xs uppercase tracking-wider text-gold">Transfer sesuai nominal berikut</p>
-        <p id="bankNameText" class="mt-3 font-semibold text-stone-100"></p>
-        <p id="accountNumberText" class="mt-1 select-all text-xl font-bold tracking-wider text-gold"></p>
-        <p id="accountHolderText" class="mt-1 text-xs text-stone-400"></p>
-        <p class="mt-3 text-xs text-stone-500">Total transfer</p>
-        <p id="transferAmountText" class="text-xl font-bold text-gold">Rp0</p>
+      <div class="flex flex-col items-center justify-center p-4 bg-neutral-900 rounded-xl border border-neutral-800 my-4 text-center">
+        <img src="qris-dana.jpg" alt="QRIS DANA Pembayaran" class="w-60 h-60 object-contain rounded-xl bg-white p-2 shadow-lg mb-3">
+        <p class="text-sm font-medium text-amber-400">Scan QRIS di atas untuk melakukan pembayaran</p>
+        <p class="text-xs text-neutral-400 mt-1">Mendukung DANA, OVO, GoPay, ShopeePay, &amp; Bank Transfer</p>
       </div>
 
-      <p id="checkoutMessage" class="mt-4 text-xs text-stone-500">Silakan transfer ke rekening yang tertera, lalu konfirmasi via WhatsApp agar admin mengaktifkan PIN Anda.</p>
+      <div class="rounded-xl border border-white/10 bg-black/20 p-4">
+        <p class="text-xs text-stone-500">Total transfer</p>
+        <p id="transferAmountText" class="mt-2 text-xl font-bold text-gold">Rp0</p>
+      </div>
+
+      <p id="checkoutMessage" class="mt-4 text-xs text-stone-500">Silakan scan QRIS DANA di atas, lalu konfirmasi via WhatsApp agar admin mengaktifkan PIN Anda.</p>
 
       <div class="mt-5 flex flex-wrap gap-3">
         <button id="whatsappCheckoutButton" class="btn-primary" type="button">Konfirmasi via WhatsApp</button>
@@ -765,6 +767,30 @@
       <div id="pinModalValue" class="pin-box mt-6 rounded-2xl border border-gold/25 bg-black/25 py-5 text-3xl font-bold text-gold">000000</div>
       <p id="pinModalExpiry" class="mt-4 text-xs text-stone-500"></p>
       <button id="copyPinButton" class="btn-primary mt-5" type="button">Salin PIN</button>
+    </div>
+  </div>
+
+  <div id="galleryDetailModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="galleryDetailTitle">
+    <div class="modal-card modal-wide overflow-hidden">
+      <div class="flex items-center justify-between gap-4 border-b border-white/10 p-5">
+        <div>
+          <p class="eyebrow">Galeri Album</p>
+          <h2 id="galleryDetailTitle" class="serif mt-2 text-3xl">Pilih Foto Favorit Anda</h2>
+        </div>
+        <button class="close-modal grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="galleryDetailModal" aria-label="Tutup" type="button">×</button>
+      </div>
+      <div class="p-5 sm:p-6">
+        <div id="galleryDetailGrid" class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4"></div>
+      </div>
+      <div class="sticky bottom-0 border-t border-white/10 bg-[#141412]/95 p-4 backdrop-blur-sm">
+        <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div class="flex flex-col gap-1 text-sm text-stone-300 sm:flex-row sm:items-center sm:gap-4">
+            <span id="gallerySelectionCount" class="font-medium">0 foto dipilih</span>
+            <span id="gallerySelectionTotal" class="text-gold font-semibold">Total: Rp0</span>
+          </div>
+          <button id="galleryContinuePaymentBtn" class="btn-primary disabled:cursor-not-allowed disabled:opacity-40" type="button">Lanjut ke Pembayaran</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -817,15 +843,53 @@
       ];
       const STORAGE_BUCKET = String(CONFIG.STORAGE_BUCKET || 'studio-photos').trim() || 'studio-photos';
 
+      /*
+      -- SQL Supabase yang harus dijalankan di SQL Editor
+      create table if not exists public.events_album (
+        id uuid primary key default gen_random_uuid(),
+        title text not null,
+        event_date date not null,
+        category text not null check (category in ('sports_running','personal','celebration')),
+        pricing_mode text not null default 'per_photo',
+        price_per_unit integer not null default 0,
+        photo_url text,
+        photo_urls text[] default '{}',
+        cover_url text,
+        created_at timestamptz not null default now()
+      );
+
+      create table if not exists public.purchased_sessions (
+        id uuid primary key default gen_random_uuid(),
+        event_id uuid,
+        event_title text,
+        event_date date,
+        photo_url text,
+        pin text not null unique,
+        expires_at timestamptz not null,
+        status text not null default 'active',
+        created_at timestamptz not null default now(),
+        total_price integer not null default 0
+      );
+
+      alter table public.events_album disable row level security;
+      alter table public.purchased_sessions disable row level security;
+
+      grant select, insert, update, delete on public.events_album to anon, authenticated;
+      grant select, insert, update, delete on public.purchased_sessions to anon, authenticated;
+      */
+
       const state = {
         supabase: null,
         events: [],
         selectedEvent: null,
+        selectedGalleryEvent: null,
+        gallerySelectionSet: new Set(),
         quantity: 1,
         adminMode: false,
         demoMode: true,
         activePin: null,
         uploadedPhotoUrl: '',
+        uploadedPhotoUrls: [],
         uploadBusy: false
       };
 
@@ -880,24 +944,25 @@
       function initSupabase() {
         const supabaseUrl = String(CONFIG.SUPABASE_URL || '').trim();
         const supabaseKey = String(CONFIG.SUPABASE_ANON_KEY || '').trim();
-        const placeholderPattern = /(YOUR_|ISI_|REPLACE|CHANGE_ME|\*{3,})/i;
-        const ready = (
-          supabaseUrl &&
-          supabaseKey &&
-          supabaseUrl.includes('supabase.co') &&
-          supabaseUrl !== 'https://YOUR_PROJECT_REF.supabase.co' &&
-          supabaseKey.length > 20 &&
-          !placeholderPattern.test(supabaseKey)
-        );
-        if (!ready) {
+        const hasProjectUrl = !!supabaseUrl && supabaseUrl.includes('supabase.co');
+        const hasAnonKey = !!supabaseKey && supabaseKey.length > 20;
+
+        if (!hasProjectUrl || !hasAnonKey) {
           state.demoMode = true;
           state.events = structuredClone(DEMO_EVENTS);
           return;
         }
+
         state.demoMode = false;
-        state.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
-          auth: { persistSession: true, autoRefreshToken: true }
-        });
+        try {
+          state.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+            auth: { persistSession: true, autoRefreshToken: true }
+          });
+        } catch (error) {
+          console.error('Supabase init failed:', error);
+          state.demoMode = true;
+          state.events = structuredClone(DEMO_EVENTS);
+        }
       }
 
       function getSupabaseErrorDetail(error) {
@@ -941,19 +1006,29 @@
         const filePath = `events/${Date.now()}-${safeName}`;
         updateUploadUi(file.name, 25, 'Mengunggah foto ke Supabase', true);
 
-        const { data, error } = await state.supabase.storage.from(STORAGE_BUCKET).upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: true,
-          contentType: file.type || 'image/jpeg'
-        });
+        try {
+          const { data, error } = await state.supabase.storage.from(STORAGE_BUCKET).upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: file.type || 'image/jpeg'
+          });
 
-        if (error) {
-          throw new Error(getSupabaseErrorDetail(error));
+          if (error) {
+            throw new Error(error.message || getSupabaseErrorDetail(error));
+          }
+
+          if (!data?.path) {
+            throw new Error('Upload berhasil tetapi path file tidak tersedia.');
+          }
+
+          const publicUrl = state.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(data.path).data.publicUrl;
+          updateUploadUi(file.name, 100, 'Upload selesai', true);
+          return publicUrl;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          updateUploadUi(file.name, 0, `Upload gagal: ${message}`, true);
+          throw new Error(message);
         }
-
-        const publicUrl = state.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(data.path).data.publicUrl;
-        updateUploadUi(file.name, 100, 'Upload selesai', true);
-        return publicUrl;
       }
 
       function ensureStorage() {
@@ -995,6 +1070,7 @@
           state.events = getStoredEvents();
           renderAlbumGrid();
           renderAdminTable();
+          updateHeroCard();
           return;
         }
 
@@ -1009,14 +1085,15 @@
           if (!data || !data.length) saveStoredEvents(state.events);
           renderAlbumGrid();
           renderAdminTable();
+          updateHeroCard();
         } catch (error) {
           state.events = getStoredEvents();
           setToast('Database belum aktif. Menampilkan mode demo lokal.');
           renderAlbumGrid();
           renderAdminTable();
+          updateHeroCard();
         }
       }
-
       function renderAlbumGrid() {
         const category = $('#galleryCategoryFilter')?.value || 'all';
         const date = $('#galleryDateFilter')?.value || '';
@@ -1035,8 +1112,10 @@
         }
 
         grid.innerHTML = filtered.map(event => {
-          const cover = safeUrl(event.cover_url || event.photo_url) || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
+          const primaryPhoto = Array.isArray(event.photo_urls) ? event.photo_urls[0] : '';
+          const cover = safeUrl(event.cover_url || primaryPhoto || event.photo_url) || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
           const typeLabel = CATEGORY_LABELS[event.category] || 'Acara';
+          const price = Number(event.price_per_unit || event.price || 0);
           const priceText = event.price_type === 'package' ? 'Paket Event' : 'Per Lembar';
           return `
             <article class="album-card cursor-pointer" data-event-id="${event.id}">
@@ -1059,8 +1138,8 @@
                 </div>
                 <div class="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
                   <div>
-                    <p class="text-xs uppercase tracking-[.12em] text-stone-500">Mulai dari</p>
-                    <p class="mt-1 text-lg font-bold text-gold">${money(event.price)}</p>
+                    <p class="text-xs text-neutral-400 font-semibold uppercase tracking-wider">Mulai Dari</p>
+                    <p class="text-lg font-bold text-white">Rp ${price.toLocaleString('id-ID')}</p>
                   </div>
                   <button class="btn-primary purchase-event" data-event-id="${event.id}" type="button">Pilih</button>
                 </div>
@@ -1075,39 +1154,159 @@
             if (target) {
               const id = target.dataset.eventId;
               const selected = state.events.find(item => item.id === id);
-              if (selected) openCheckout(selected);
+              if (selected) openGalleryDetail(selected);
               return;
             }
             const cardId = el.dataset.eventId;
             const selected = state.events.find(item => item.id === cardId);
-            if (selected) openCheckout(selected);
+            if (selected) openGalleryDetail(selected);
           });
         });
       }
 
-      function openCheckout(event) {
+      function loadAdminEventsTable() {
+        renderAdminTable();
+      }
+
+      function filterEvents() {
+        renderAlbumGrid();
+      }
+
+      function updateHeroCard() {
+        const hero = document.querySelector('.hero');
+        if (!hero) return;
+
+        const defaultImage = './assets/imagineworks-hero.jpg';
+        const latest = state.events.length
+          ? state.events.reduce((current, item) => {
+              const currentTime = new Date(current?.created_at || current?.event_date || '1970-01-01').getTime();
+              const itemTime = new Date(item?.created_at || item?.event_date || '1970-01-01').getTime();
+              return itemTime > currentTime ? item : current;
+            }, state.events[0])
+          : null;
+
+        const primaryPhoto = Array.isArray(latest?.photo_urls) ? latest.photo_urls[0] : '';
+        const imageUrl = latest ? safeUrl(latest.cover_url || primaryPhoto || latest.photo_url) || defaultImage : defaultImage;
+        const heroTitle = hero.querySelector('h1');
+        const titleText = latest ? latest.title : 'Capturing Your Imagination Into Reality';
+
+        hero.style.background = `linear-gradient(90deg, rgba(18,18,18,.97), rgba(18,18,18,.82) 52%, rgba(18,18,18,.28)), url('${imageUrl}') center 52%/cover no-repeat`;
+        if (heroTitle) heroTitle.textContent = titleText;
+      }
+
+      function openGalleryDetail(event) {
+        state.selectedGalleryEvent = event;
+        state.gallerySelectionSet = new Set();
+
+        const galleryPhotos = [];
+        const seen = new Set();
+        const photoCandidates = Array.isArray(event.photo_urls) ? event.photo_urls : [];
+        const candidates = [...photoCandidates, event.cover_url, event.photo_url, event.gallery_photos].flat().filter(Boolean);
+        candidates.forEach(candidate => {
+          const url = safeUrl(candidate);
+          if (!url || seen.has(url)) return;
+          seen.add(url);
+          galleryPhotos.push(url);
+        });
+
+        if (!galleryPhotos.length) {
+          galleryPhotos.push(safeUrl(event.photo_url) || safeUrl(event.cover_url) || './assets/imagineworks-hero.jpg');
+        }
+
+        const modal = document.getElementById('galleryDetailModal');
+        if (!modal) return;
+
+        const grid = modal.querySelector('#galleryDetailGrid');
+        const count = modal.querySelector('#gallerySelectionCount');
+        const total = modal.querySelector('#gallerySelectionTotal');
+        const actionButton = modal.querySelector('#galleryContinuePaymentBtn');
+
+        if (grid) {
+          grid.innerHTML = galleryPhotos.map((photoUrl, index) => `
+            <label class="relative block cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#171716]">
+              <div class="aspect-square overflow-hidden">
+                <img src="${photoUrl}" alt="Preview foto ${index + 1}" class="h-full w-full object-cover" loading="lazy" />
+              </div>
+              <div class="watermark">
+                <span>IMAGINEWORKS</span><span>STUDIO</span><span>IMAGINEWORKS</span>
+                <span>STUDIO</span><span>IMAGINEWORKS</span><span>STUDIO</span>
+                <span>IMAGINEWORKS</span><span>STUDIO</span><span>IMAGINEWORKS</span>
+              </div>
+              <span class="absolute right-3 top-3 inline-flex h-6 w-6 items-center justify-center rounded-full border border-white/20 bg-black/45 text-[0.7rem] text-white">
+                <input type="checkbox" data-gallery-photo="${photoUrl}" class="sr-only" />
+                <span class="gallery-select-indicator">✓</span>
+              </span>
+            </label>
+          `).join('');
+        }
+
+        const syncBill = () => {
+          const selectedCount = state.gallerySelectionSet.size;
+          const unitPrice = Number(event.price_per_unit || event.price || 0);
+          const selectedTotal = event.price_type === 'package' ? Number(event.price || 0) : unitPrice * selectedCount;
+          if (count) count.textContent = selectedCount ? `${selectedCount} foto dipilih` : '0 foto dipilih';
+          if (total) total.textContent = selectedCount ? `Total: ${money(selectedTotal)}` : 'Total: Rp0';
+          if (actionButton) actionButton.disabled = selectedCount === 0;
+
+          if (grid) {
+            grid.querySelectorAll('[data-gallery-photo]').forEach(input => {
+              const wrapper = input.closest('label');
+              const isSelected = state.gallerySelectionSet.has(input.getAttribute('data-gallery-photo'));
+              wrapper?.classList.toggle('ring-4', isSelected);
+              wrapper?.classList.toggle('ring-emerald-500/80', isSelected);
+              wrapper?.classList.toggle('shadow-[0_0_0_2px_rgba(16,185,129,0.35)]', isSelected);
+              const indicator = wrapper?.querySelector('.gallery-select-indicator');
+              const badge = wrapper?.querySelector('span.absolute');
+              if (isSelected) {
+                badge?.classList.remove('bg-black/50', 'text-white/50', 'hover:bg-black/80');
+                badge?.classList.add('bg-emerald-500', 'text-white', 'shadow-lg', 'scale-110');
+                indicator?.classList.add('text-white');
+              } else {
+                badge?.classList.remove('bg-emerald-500', 'text-white', 'shadow-lg', 'scale-110');
+                badge?.classList.add('bg-black/50', 'text-white/50', 'hover:bg-black/80');
+                indicator?.classList.remove('text-white');
+              }
+            });
+          }
+        };
+
+        if (grid) {
+          grid.querySelectorAll('[data-gallery-photo]').forEach(input => {
+            input.addEventListener('change', (event) => {
+              const target = event.currentTarget;
+              const photoUrl = target.getAttribute('data-gallery-photo');
+              if (target.checked) state.gallerySelectionSet.add(photoUrl);
+              else state.gallerySelectionSet.delete(photoUrl);
+              syncBill();
+            });
+          });
+        }
+
+        if (count) count.textContent = '0 foto dipilih';
+        if (total) total.textContent = 'Total: Rp0';
+        if (actionButton) actionButton.disabled = true;
+        modal.querySelector('#galleryDetailTitle')?.replaceChildren(document.createTextNode(event.title));
+        showModal('galleryDetailModal');
+      }
+
+      function openCheckout(event, selectedCount = null) {
         state.selectedEvent = event;
-        state.quantity = event.price_type === 'package' ? 1 : Math.max(1, state.quantity);
+        const chosenCount = Number.isFinite(Number(selectedCount)) && Number(selectedCount) > 0 ? Number(selectedCount) : 1;
+        state.quantity = event.price_type === 'package' ? 1 : Math.max(1, chosenCount);
         const quantity = Math.max(1, state.quantity);
-        const total = event.price_type === 'package' ? Number(event.price) : Number(event.price) * quantity;
+        const unitPrice = Number(event.price_per_unit || event.price || 0);
+        const total = event.price_type === 'package' ? Number(event.price || 0) : unitPrice * quantity;
 
         $('#checkoutEventTitle').textContent = event.title;
-        $('#unitPriceLabel').textContent = event.price_type === 'package' ? 'Paket event' : `${money(event.price)} / foto`;
+        $('#unitPriceLabel').textContent = event.price_type === 'package' ? 'Paket event' : `Rp ${unitPrice.toLocaleString('id-ID')} / foto`;
         $('#qtyValue').textContent = String(event.price_type === 'package' ? 1 : quantity);
-        $('#checkoutTotal').textContent = money(total);
-        $('#transferAmountText').textContent = money(total);
+        $('#checkoutTotal').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+        $('#transferAmountText').textContent = `Rp ${total.toLocaleString('id-ID')}`;
         $('#packageMessage').classList.toggle('hidden', event.price_type !== 'package');
         $('#qtyMinus').disabled = event.price_type === 'package';
         $('#qtyPlus').disabled = event.price_type === 'package';
         $('#qtyMinus').style.opacity = event.price_type === 'package' ? '0.45' : '1';
         $('#qtyPlus').style.opacity = event.price_type === 'package' ? '0.45' : '1';
-
-        const bankName = String(CONFIG.BANK_TRANSFER?.BANK_NAME || 'Nama Bank');
-        const accountNumber = String(CONFIG.BANK_TRANSFER?.ACCOUNT_NUMBER || 'ISI_NOMOR_REKENING');
-        const accountHolder = String(CONFIG.BANK_TRANSFER?.ACCOUNT_HOLDER || 'ISI_NAMA_PEMILIK_REKENING');
-        $('#bankNameText').textContent = bankName;
-        $('#accountNumberText').textContent = accountNumber;
-        $('#accountHolderText').textContent = `a.n. ${accountHolder}`;
 
         showModal('checkoutModal');
       }
@@ -1146,18 +1345,21 @@
       function updateCheckoutTotal() {
         const event = state.selectedEvent;
         if (!event) return;
+        const unitPrice = Number(event.price_per_unit || event.price || 0);
         const quantity = event.price_type === 'package' ? 1 : state.quantity;
-        const total = event.price_type === 'package' ? Number(event.price) : Number(event.price) * quantity;
+        const total = event.price_type === 'package' ? Number(event.price || 0) : unitPrice * quantity;
         $('#qtyValue').textContent = String(quantity);
-        $('#checkoutTotal').textContent = money(total);
-        $('#transferAmountText').textContent = money(total);
+        $('#checkoutTotal').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+        $('#transferAmountText').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+        $('#unitPriceLabel').textContent = event.price_type === 'package' ? 'Paket event' : `Rp ${unitPrice.toLocaleString('id-ID')} / foto`;
       }
 
       function getSelectedTotal() {
         const event = state.selectedEvent;
         if (!event) return 0;
+        const unitPrice = Number(event.price_per_unit || event.price || 0);
         const qty = event.price_type === 'package' ? 1 : state.quantity;
-        return event.price_type === 'package' ? Number(event.price) : Number(event.price) * qty;
+        return event.price_type === 'package' ? Number(event.price || 0) : unitPrice * qty;
       }
 
       function renderAdminTable() {
@@ -1245,6 +1447,132 @@
         updateUploadUi('', 0, '', false);
       }
 
+      async function handleFiles(files) {
+        const fileList = Array.from(files || []).filter(file => file && file.type && file.type.startsWith('image/'));
+        if (!fileList.length) return [];
+
+        if (state.demoMode) {
+          const previewUrls = fileList.map(file => URL.createObjectURL(file));
+          state.uploadedPhotoUrls = previewUrls;
+          updateUploadUi('', 100, `${previewUrls.length} foto demo siap digunakan`, true);
+          return previewUrls;
+        }
+
+        return uploadFiles(fileList);
+      }
+
+      async function uploadFiles(files) {
+        const fileList = Array.from(files || []).filter(file => file && file.type && file.type.startsWith('image/'));
+        if (!fileList.length) return [];
+
+        const supabaseClient = state.supabase;
+        if (!supabaseClient) {
+          throw new Error('Supabase belum siap. Pastikan config env.js dan project Supabase aktif.');
+        }
+
+        const totalFiles = fileList.length;
+        state.uploadedPhotoUrls = [];
+
+        const uploadPromises = fileList.map(async (file, index) => {
+          const fileName = `event_${Date.now()}_${Math.random().toString(36).substring(7)}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+          updateUploadUi(file.name, Math.round(((index + 1) / totalFiles) * 100), `Mengunggah ${index + 1} dari ${totalFiles} foto...`, true);
+
+          const { data, error } = await supabaseClient.storage
+            .from('studio-photos')
+            .upload(fileName, file, { cacheControl: '3600', upsert: true });
+
+          if (error) throw error;
+
+          const { data: publicUrlData } = supabaseClient.storage
+            .from('studio-photos')
+            .getPublicUrl(fileName);
+
+          if (!publicUrlData?.publicUrl) {
+            throw new Error(`Public URL untuk ${file.name} tidak tersedia.`);
+          }
+
+          return publicUrlData.publicUrl;
+        });
+
+        try {
+          const uploadedPhotoUrls = await Promise.all(uploadPromises);
+          state.uploadedPhotoUrls = uploadedPhotoUrls;
+          updateUploadUi('', 100, `${uploadedPhotoUrls.length} foto berhasil diupload`, true);
+          return uploadedPhotoUrls;
+        } catch (error) {
+          const detail = error instanceof Error ? error.message : JSON.stringify(error);
+          updateUploadUi('', 0, `Upload gagal: ${detail}`, true);
+          throw new Error(detail);
+        }
+      }
+
+      async function addNewEvent(eventData) {
+        if (state.demoMode) {
+          const uploadedPhotoUrls = Array.isArray(eventData.photo_urls) ? eventData.photo_urls : [];
+          const primaryPhotoUrl = eventData.photo_url || eventData.photo_urls?.[0] || '';
+          const coverUrlValue = eventData.cover_url || primaryPhotoUrl || '';
+
+          const newEvent = {
+            id: crypto.randomUUID ? crypto.randomUUID() : `event-${Date.now()}`,
+            title: eventData.title,
+            event_date: eventData.event_date,
+            category: eventData.category,
+            price_type: eventData.pricing_mode || eventData.price_type || 'per_photo',
+            price: Number(eventData.price_per_unit ?? eventData.price ?? 0),
+            pricing_mode: eventData.pricing_mode || eventData.price_type || 'per_photo',
+            price_per_unit: Number(eventData.price_per_unit ?? eventData.price ?? 0),
+            photo_url: primaryPhotoUrl,
+            photo_urls: uploadedPhotoUrls.length ? uploadedPhotoUrls : (primaryPhotoUrl ? [primaryPhotoUrl] : []),
+            cover_url: coverUrlValue,
+            created_at: new Date().toISOString()
+          };
+
+          const all = getStoredEvents();
+          all.unshift(newEvent);
+          saveStoredEvents(all);
+          state.events = all;
+          renderAlbumGrid();
+          renderAdminTable();
+          updateHeroCard();
+          resetEventForm();
+          alert('Event berhasil disimpan!');
+          return;
+        }
+
+        const supabaseClient = state.supabase;
+        if (!supabaseClient) {
+          throw new Error('Supabase belum siap. Pastikan config env.js dan project Supabase aktif.');
+        }
+
+        const uploadedPhotoUrls = Array.isArray(eventData.photo_urls) && eventData.photo_urls.length
+          ? eventData.photo_urls
+          : (eventData.photo_url ? [eventData.photo_url] : []);
+        const coverUrlValue = eventData.cover_url || eventData.photo_url || uploadedPhotoUrls[0] || '';
+        const photoUrlValue = eventData.photo_url || uploadedPhotoUrls[0] || '';
+
+        const payload = {
+          title: eventData.title,
+          event_date: eventData.event_date,
+          category: eventData.category,
+          pricing_mode: eventData.pricing_mode || eventData.price_type || 'per_photo',
+          price_per_unit: Number(eventData.price_per_unit ?? eventData.price ?? 0),
+          photo_url: photoUrlValue,
+          photo_urls: uploadedPhotoUrls,
+          cover_url: coverUrlValue
+        };
+
+        const { error } = await supabaseClient.from('events_album').insert([payload]);
+        if (error) {
+          alert('Gagal menyimpan event: ' + error.message);
+          return;
+        }
+
+        alert('Event berhasil disimpan!');
+        resetEventForm();
+        loadEvents();
+        updateHeroCard();
+      }
+
       async function saveEvent() {
         const title = $('#eventTitle').value.trim();
         const eventDate = $('#eventDate').value;
@@ -1253,6 +1581,7 @@
         const price = Number($('#eventPrice').value || 0);
         const coverUrlInput = $('#eventCoverUrl').value.trim();
         const selectedFiles = $('#eventPhotoInput')?.files || [];
+        let uploadedPhotoUrls = [];
         let photoUrl = safeUrl(coverUrlInput) || (selectedFiles[0] ? URL.createObjectURL(selectedFiles[0]) : '');
 
         if (!selectedFiles.length && !photoUrl) {
@@ -1262,57 +1591,36 @@
 
         if (selectedFiles.length) {
           try {
-            photoUrl = await uploadEventPhoto(selectedFiles[0]);
+            uploadedPhotoUrls = await uploadFiles(selectedFiles);
+            photoUrl = uploadedPhotoUrls[0] || photoUrl;
           } catch (error) {
-            setToast(getSupabaseErrorDetail(error));
+            const message = error instanceof Error ? error.message : String(error);
+            setToast(`Gagal upload foto: ${message}`);
             return;
           }
         }
 
         const coverUrl = safeUrl($('#eventCoverUrl').value.trim()) || photoUrl;
 
-        if (!title || !eventDate || !category || !price || !photoUrl) {
+        if (!title || !eventDate || !category || !price || (!uploadedPhotoUrls.length && !photoUrl)) {
           setToast('Isi judul event, tanggal, nominal, dan foto original.');
           return;
         }
 
-        const newEvent = {
-          id: crypto.randomUUID ? crypto.randomUUID() : `event-${Date.now()}`,
+        const eventPayload = {
           title,
           event_date: eventDate,
           category,
+          pricing_mode: priceType,
+          price_per_unit: price,
           price_type: priceType,
           price,
           photo_url: photoUrl,
-          cover_url: coverUrl,
-          created_at: new Date().toISOString()
+          photo_urls: uploadedPhotoUrls.length ? uploadedPhotoUrls : [photoUrl],
+          cover_url: coverUrl
         };
 
-        if (state.demoMode) {
-          const all = getStoredEvents();
-          all.unshift(newEvent);
-          saveStoredEvents(all);
-          state.events = all;
-          renderAlbumGrid();
-          renderAdminTable();
-          resetEventForm();
-          setToast('Event baru berhasil dibuat di mode demo.');
-          return;
-        }
-
-        try {
-          const { error } = await state.supabase.from('events_album').insert([newEvent]);
-          if (error) throw error;
-          state.events = [...state.events, newEvent];
-          renderAlbumGrid();
-          renderAdminTable();
-          resetEventForm();
-          setToast('Event berhasil ditambahkan ke Supabase.');
-        } catch (error) {
-          const detail = getSupabaseErrorDetail(error);
-          setToast(`Gagal menyimpan event: ${detail}`);
-          console.error(error);
-        }
+        await addNewEvent(eventPayload);
       }
 
       async function deleteEvent(eventId) {
@@ -1325,54 +1633,54 @@
           state.events = filtered;
           renderAlbumGrid();
           renderAdminTable();
+          updateHeroCard();
           setToast('Event berhasil dihapus dari demo.');
           return;
         }
 
         try {
+          if (!state.supabase) {
+            throw new Error('Supabase belum siap. Pastikan config env.js dan project Supabase aktif.');
+          }
+
           const { error } = await state.supabase.from('events_album').delete().eq('id', eventId);
           if (error) throw error;
           state.events = state.events.filter(item => item.id !== eventId);
           renderAlbumGrid();
           renderAdminTable();
+          updateHeroCard();
           setToast('Event berhasil dihapus.');
         } catch (error) {
-          const detail = getSupabaseErrorDetail(error);
+          const detail = error instanceof Error ? error.message : String(error);
           setToast(`Gagal menghapus event: ${detail}`);
-          console.error(error);
+          console.error('deleteEvent error:', error);
         }
       }
 
       async function createPurchasedSession(event) {
-        const pin = String(Math.floor(100000 + Math.random() * 900000));
+        const generatedPin = String(Math.floor(100000 + Math.random() * 900000));
         const expiresAt = new Date(Date.now() + (60 * 24 * 60 * 60 * 1000)).toISOString();
-        const session = {
-          id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
-          event_id: event.id,
-          event_title: event.title,
-          event_date: event.event_date,
-          photo_url: event.photo_url,
-          pin,
+        const pinData = {
+          pin_code: generatedPin,
+          photo_url: event.photo_url || (event.photo_urls ? event.photo_urls[0] : ''),
           expires_at: expiresAt,
-          status: 'active',
-          created_at: new Date().toISOString(),
-          total_price: Number(event.price)
+          created_at: new Date().toISOString()
         };
 
         if (state.demoMode) {
           const sessions = getStoredPurchasedSessions();
-          sessions.unshift(session);
+          sessions.unshift({ ...pinData, id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`, event_id: event.id, event_title: event.title, total_price: Number(event.price || 0) });
           saveStoredPurchasedSessions(sessions);
-          showGeneratedPinModal(event, pin, expiresAt);
-          setToast(`PIN berhasil dibuat: ${pin}`);
+          showGeneratedPinModal(event, generatedPin, expiresAt);
+          setToast(`PIN berhasil dibuat: ${generatedPin}`);
           return;
         }
 
         try {
-          const { error } = await state.supabase.from('purchased_sessions').insert([session]);
+          const { error } = await state.supabase.from('purchased_sessions').insert([pinData]);
           if (error) throw error;
-          showGeneratedPinModal(event, pin, expiresAt);
-          setToast(`PIN berhasil dibuat: ${pin}`);
+          showGeneratedPinModal(event, generatedPin, expiresAt);
+          setToast(`PIN berhasil dibuat: ${generatedPin}`);
         } catch (error) {
           const detail = getSupabaseErrorDetail(error);
           setToast(`Gagal menerbitkan PIN otomatis: ${detail}`);
@@ -1386,14 +1694,14 @@
 
         if (state.demoMode) {
           const sessions = getStoredPurchasedSessions();
-          return sessions.find(item => item.pin === clean) || null;
+          return sessions.find(item => item.pin_code === clean || item.pin === clean) || null;
         }
 
         try {
           const { data, error } = await state.supabase
             .from('purchased_sessions')
             .select('*')
-            .eq('pin', clean)
+            .eq('pin_code', clean)
             .maybeSingle();
           if (error) throw error;
           return data || null;
@@ -1412,7 +1720,7 @@
 
         const session = await fetchSessionByPin(value);
         if (!session) {
-          const localSession = getStoredPurchasedSessions().find(item => item.pin === value);
+          const localSession = getStoredPurchasedSessions().find(item => item.pin_code === value || item.pin === value);
           if (!localSession) {
             setResult('#pinResult', 'PIN tidak terdaftar atau belum aktif.', true);
             return;
@@ -1557,12 +1865,13 @@
         if (!dropZone || !fileInput) return;
 
         const onSelectedFiles = () => {
-          const file = fileInput.files && fileInput.files[0];
-          if (!file) {
+          const files = Array.from(fileInput.files || []);
+          if (!files.length) {
             updateUploadUi('', 0, '', false);
             return;
           }
-          updateUploadUi(file.name, 100, 'File siap diunggah', true);
+          const countLabel = files.length > 1 ? `${files.length} foto siap diupload` : files[0].name;
+          updateUploadUi(countLabel, 100, 'File gambar siap diupload', true);
         };
 
         ['dragenter', 'dragover'].forEach(type => {
@@ -1588,11 +1897,17 @@
           const transfer = new DataTransfer();
           files.forEach(file => transfer.items.add(file));
           fileInput.files = transfer.files;
-          const selected = files[0];
-          updateUploadUi(selected.name, 100, 'File gambar siap diupload', true);
+          onSelectedFiles();
         });
 
-        fileInput.addEventListener('change', onSelectedFiles);
+        fileInput.addEventListener('change', () => {
+          const files = Array.from(fileInput.files || []);
+          if (files.length) {
+            state.uploadedPhotoUrls = [];
+            const countLabel = files.length > 1 ? `${files.length} foto dipilih` : files[0].name;
+            updateUploadUi(countLabel, 100, 'File gambar siap diupload', true);
+          }
+        });
         $('#copyPinButton')?.addEventListener('click', copyPinToClipboard);
       }
 
@@ -1610,6 +1925,7 @@
           if (event.key === 'Escape') {
             closeModal('pinModal');
             closeModal('checkoutModal');
+            closeModal('galleryDetailModal');
             closeModal('adminLoginModal');
           }
         });
@@ -1635,6 +1951,13 @@
 
         document.querySelectorAll('[data-close]').forEach(button => {
           button.addEventListener('click', () => closeModal(button.dataset.close));
+        });
+
+        $('#galleryContinuePaymentBtn')?.addEventListener('click', () => {
+          const event = state.selectedGalleryEvent;
+          if (!event) return;
+          closeModal('galleryDetailModal');
+          openCheckout(event, state.gallerySelectionSet.size);
         });
 
         document.querySelectorAll('[data-open-booking]').forEach(button => {
