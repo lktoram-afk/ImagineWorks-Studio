@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#121212">
-  <meta name="description" content="ImagineWorks Studio — fotografi personal, olahraga, dan perayaan dalam cerita visual yang sinematik.">
+  <meta name="description" content="ImagineWorks Studio — portfolio foto personal, olahraga, dan acara dalam tampilan cinematic premium.">
   <title>ImagineWorks Studio — Moments, Made Cinematic</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,270 +12,621 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: { extend: { colors: { ink: '#121212', panel: '#1A1A1A', gold: '#E5C158', flame: '#F97316' }, fontFamily: { sans: ['DM Sans', 'sans-serif'], serif: ['Playfair Display', 'serif'] } } }
+      theme: {
+        extend: {
+          colors: {
+            ink: '#121212',
+            panel: '#1A1A1A',
+            gold: '#E5C158',
+            flame: '#F97316',
+            ivory: '#F5F1E8'
+          },
+          fontFamily: {
+            sans: ['DM Sans', 'sans-serif'],
+            serif: ['Playfair Display', 'serif']
+          }
+        }
+      }
     };
   </script>
   <style>
-    :root { color-scheme: dark; --ink:#121212; --panel:#1A1A1A; --gold:#E5C158; --flame:#F97316; --muted:#a6a29a; --hero-image:url('./assets/imagineworks-hero.jpg'); }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; scroll-padding-top:5rem; }
-    body { margin:0; background:var(--ink); color:#f5f1e8; font-family:'DM Sans',sans-serif; }
-    button,input,select,textarea { font:inherit; }
-    button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
-    .serif { font-family:'Playfair Display',serif; }
-    .sidebar { width:272px; background:#171716; border-right:1px solid rgba(229,193,88,.12); }
-    .main-shell { margin-left:272px; min-height:100vh; }
-    .eyebrow { color:var(--gold); font-size:.67rem; letter-spacing:.22em; text-transform:uppercase; font-weight:700; }
-    .gold-line { height:1px; background:linear-gradient(90deg,var(--gold),transparent); }
-    .ticker { overflow:hidden; white-space:nowrap; }
-    .ticker-track { display:inline-block; min-width:200%; animation:ticker 28s linear infinite; }
-    @keyframes ticker { from { transform:translateX(0); } to { transform:translateX(-50%); } }
-    .hero { min-height:390px; position:relative; isolation:isolate; overflow:hidden; background:#191817; }
-    .hero::before { content:""; position:absolute; inset:0; z-index:-2; background:linear-gradient(90deg,rgba(18,18,18,.98) 0%,rgba(18,18,18,.87) 42%,rgba(18,18,18,.2) 100%),var(--hero-image) center 55%/cover no-repeat; transform:scale(1.01); }
-    .hero::after { content:""; position:absolute; inset:auto 0 0; height:1px; background:linear-gradient(90deg,transparent,rgba(229,193,88,.65),transparent); }
-    .hero-orb { position:absolute; right:8%; top:10%; width:210px; height:210px; border:1px solid rgba(229,193,88,.16); border-radius:50%; box-shadow:0 0 0 24px rgba(229,193,88,.025),0 0 0 48px rgba(229,193,88,.018); pointer-events:none; }
-    .nav-link { display:flex; align-items:center; gap:.8rem; border-radius:12px; padding:.8rem .9rem; color:#c6c1b7; transition:background .2s,color .2s,transform .2s; }
-    .nav-link:hover,.nav-link.active { background:rgba(229,193,88,.09); color:#fff3c7; transform:translateX(2px); }
-    .nav-number { color:var(--gold); font-size:.66rem; letter-spacing:.08em; }
-    .mobile-menu { opacity:0; visibility:hidden; transition:opacity .2s,visibility .2s; }
-    .mobile-menu.open { opacity:1; visibility:visible; }
-    .album-grid { display:grid; grid-template-columns:1fr; gap:1.1rem; }
-    .photo-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem; }
-    .photo-tile { overflow:hidden; border:1px solid rgba(255,255,255,.09); border-radius:14px; background:#141413; text-align:left; transition:border-color .2s,transform .2s,background .2s; }
-    .photo-tile:hover { border-color:rgba(229,193,88,.55); transform:translateY(-2px); }
-    .photo-tile.selected { border-color:var(--gold); background:rgba(229,193,88,.08); box-shadow:0 0 0 1px rgba(229,193,88,.16); }
-    .photo-preview-frame { position:relative; aspect-ratio:4/3; overflow:hidden; background:linear-gradient(135deg,#35312a,#191919 55%,#4c3825); }
-    .photo-preview-frame img { width:100%; height:100%; object-fit:cover; }
-    .photo-watermark { position:absolute; inset:-25%; display:grid; grid-template-columns:repeat(2,1fr); grid-template-rows:repeat(2,1fr); place-items:center; transform:rotate(-34deg); pointer-events:none; user-select:none; }
-    .photo-watermark span { color:rgba(255,255,255,.35); font-size:.6rem; font-weight:700; letter-spacing:.13em; white-space:nowrap; text-shadow:0 1px 5px #000; }
-    .photo-loading { position:absolute; inset:0; display:grid; place-items:center; color:#b6ad96; font-size:.72rem; }
-    .modal-card.modal-wide { width:min(100%,1100px); max-height:min(92vh,1000px); }
-    .album-card { background:var(--panel); border:1px solid rgba(255,255,255,.07); border-radius:16px; overflow:hidden; transition:transform .24s,border-color .24s,box-shadow .24s; }
-    .album-card:hover { transform:translateY(-4px); border-color:rgba(229,193,88,.42); box-shadow:0 20px 50px rgba(0,0,0,.22); }
-    .preview-frame { position:relative; aspect-ratio:1.58/1; overflow:hidden; user-select:none; -webkit-user-select:none; background:radial-gradient(circle at 72% 28%,rgba(229,193,88,.25),transparent 27%),linear-gradient(135deg,#34302a,#191919 55%,#5b351c); }
-    .preview-frame[data-category="personal"] { background:radial-gradient(circle at 35% 45%,rgba(229,193,88,.3),transparent 32%),linear-gradient(135deg,#3c3028,#191919 55%,#513a35); }
-    .preview-frame[data-category="celebration"] { background:radial-gradient(circle at 62% 35%,rgba(249,115,22,.25),transparent 27%),linear-gradient(135deg,#33241e,#171717 58%,#533825); }
-    .preview-frame[data-category="sports_running"] { background:radial-gradient(circle at 63% 45%,rgba(229,193,88,.25),transparent 28%),linear-gradient(135deg,#282d2a,#171717 56%,#594328); }
-    .no-select { user-select:none; -webkit-user-select:none; -webkit-user-drag:none; }
-    .preview-image { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.8; filter:saturate(.82); pointer-events:none; }
-    .preview-image[src=""] { display:none; }
-    .preview-placeholder { position:absolute; inset:0; display:grid; place-items:center; color:rgba(245,241,232,.44); }
-    .preview-placeholder svg { width:50px; height:50px; stroke:currentColor; }
-    .watermark { position:absolute; inset:-30%; z-index:2; display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr); align-items:center; justify-items:center; transform:rotate(-34deg); pointer-events:none; user-select:none; -webkit-user-select:none; }
-    .watermark span { color:rgba(255,255,255,.23); font-size:clamp(.52rem,1.1vw,.78rem); font-weight:700; letter-spacing:.19em; white-space:nowrap; text-shadow:0 1px 5px rgba(0,0,0,.35); }
-    .cover-tag { position:absolute; z-index:3; left:14px; top:14px; border:1px solid rgba(229,193,88,.34); background:rgba(18,18,18,.78); color:#f3d987; border-radius:999px; padding:.35rem .65rem; font-size:.64rem; letter-spacing:.08em; backdrop-filter:blur(8px); }
-    .price-badge { border:1px solid rgba(229,193,88,.25); color:#f0d47f; background:rgba(229,193,88,.06); }
-    .control { width:100%; border:1px solid #35342f; border-radius:11px; background:#141413; color:#f5f1e8; padding:.76rem .88rem; }
-    .control::placeholder { color:#77736d; }
-    .btn-primary { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border-radius:999px; background:var(--gold); color:#17140c; padding:.78rem 1.25rem; font-weight:700; transition:filter .2s,transform .2s; }
-    .btn-primary:hover { filter:brightness(1.08); transform:translateY(-1px); }
-    .btn-secondary { display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border:1px solid #47443a; border-radius:999px; color:#eee9dc; background:rgba(255,255,255,.025); padding:.72rem 1.1rem; transition:border-color .2s,background .2s; }
-    .btn-secondary:hover { border-color:var(--gold); background:rgba(229,193,88,.07); }
-    .btn-flame { background:var(--flame); color:#1b1008; }
-    .modal-backdrop { position:fixed; inset:0; z-index:80; display:none; align-items:center; justify-content:center; padding:1rem; background:rgba(0,0,0,.78); backdrop-filter:blur(8px); }
-    .modal-backdrop.open { display:flex; }
-    .modal-card { width:min(100%,540px); max-height:min(88vh,850px); overflow:auto; background:#1b1b19; border:1px solid rgba(229,193,88,.22); border-radius:20px; box-shadow:0 28px 100px rgba(0,0,0,.5); animation:modalIn .2s ease-out; }
-    @keyframes modalIn { from { opacity:0; transform:translateY(10px) scale(.99); } to { opacity:1; transform:translateY(0) scale(1); } }
-    .bottom-nav { padding-bottom:max(.55rem,env(safe-area-inset-bottom)); }
-    .toast { position:fixed; left:50%; bottom:6rem; z-index:120; transform:translate(-50%,15px); opacity:0; pointer-events:none; transition:all .25s; background:#26251f; border:1px solid rgba(229,193,88,.3); padding:.75rem 1rem; border-radius:12px; color:#fff2c5; max-width:min(90vw,480px); box-shadow:0 15px 45px rgba(0,0,0,.4); }
-    .toast.show { opacity:1; transform:translate(-50%,0); }
-    .admin-content { display:none; }
-    .admin-content.open { display:block; }
-    .pin-box { font-family:monospace; letter-spacing:.28em; }
-    @media (min-width:680px) { .album-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
-    @media (min-width:1180px) { .album-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-    @media (max-width:1023px) {
-      .sidebar { display:none; }
-      .main-shell { margin-left:0; }
-      .hero { min-height:355px; }
-      .hero::before { background-image:linear-gradient(90deg,rgba(18,18,18,.96) 0%,rgba(18,18,18,.75) 56%,rgba(18,18,18,.25) 100%),var(--hero-image); background-position:center 55%; }
+    :root {
+      color-scheme: dark;
+      --ink: #121212;
+      --panel: #1A1A1A;
+      --gold: #E5C158;
+      --flame: #F97316;
+      --muted: #a6a29a;
+      --bg-soft: #171716;
+      --line: rgba(229, 193, 88, 0.16);
+      --text: #f5f1e8;
     }
-    @media (max-width:639px) {
-      html { scroll-padding-top:4.5rem; }
-      .photo-grid { gap:.55rem; }
-      .photo-watermark span { font-size:.48rem; letter-spacing:.08em; }
-      .hero { min-height:390px; }
-      .hero::before { background-image:linear-gradient(90deg,rgba(18,18,18,.94),rgba(18,18,18,.73)),var(--hero-image); background-position:62% center; }
-      .hero-orb { width:125px;height:125px;right:-4%;top:10%; }
-      .watermark span { font-size:.51rem; letter-spacing:.13em; }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+    body {
+      margin: 0;
+      background: var(--ink);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
     }
-    @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; } }
+    body.no-scroll { overflow: hidden; }
+    button, input, select, textarea { font: inherit; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+    a { text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    .serif { font-family: 'Playfair Display', serif; }
+    .eyebrow {
+      color: var(--gold);
+      font-size: 0.68rem;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+    .sidebar {
+      position: fixed;
+      inset: 0 auto 0 0;
+      width: 272px;
+      background: #171716;
+      border-right: 1px solid var(--line);
+      padding: 1.2rem 1rem 1.4rem;
+      z-index: 30;
+    }
+    .main-shell {
+      margin-left: 272px;
+      min-height: 100vh;
+    }
+    .logo-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      color: #17140c;
+      background: linear-gradient(135deg, #f2d67a, #d7a033 55%, #f3cf7b);
+      box-shadow: 0 12px 26px rgba(229, 193, 88, 0.28);
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+      padding: 0.8rem 0.9rem;
+      border-radius: 12px;
+      color: #cabfa7;
+      transition: all .2s ease;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(229, 193, 88, 0.08);
+      color: #fff3c7;
+      transform: translateX(2px);
+    }
+    .nav-number {
+      color: var(--gold);
+      font-size: .66rem;
+      letter-spacing: .08em;
+      min-width: 1.5rem;
+    }
+    .gold-line {
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+      margin: 1rem 0;
+    }
+    .mini-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 0.9rem 1rem;
+    }
+    .ticker {
+      overflow: hidden;
+      white-space: nowrap;
+      border-top: 1px solid rgba(255,255,255,0.05);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      background: rgba(255,255,255,0.01);
+    }
+    .ticker-track {
+      display: inline-block;
+      min-width: 200%;
+      padding: 0.72rem 0;
+      animation: ticker 28s linear infinite;
+    }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    .hero {
+      position: relative;
+      min-height: 440px;
+      background: linear-gradient(90deg, rgba(18,18,18,.97), rgba(18,18,18,.82) 52%, rgba(18,18,18,.28)), url('./assets/imagineworks-hero.jpg') center 52%/cover no-repeat;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 28px;
+      overflow: hidden;
+    }
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(229,193,88,.78), transparent);
+    }
+    .hero-orb {
+      position: absolute;
+      right: 6%;
+      top: 10%;
+      width: 220px;
+      height: 220px;
+      border: 1px solid rgba(229,193,88,.14);
+      border-radius: 50%;
+      box-shadow: 0 0 0 24px rgba(229,193,88,.02), 0 0 0 48px rgba(229,193,88,.014);
+      pointer-events: none;
+    }
+    .glass-card {
+      background: rgba(18, 18, 18, 0.68);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 25px 70px rgba(0,0,0,0.22);
+    }
+    .filter-chip {
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.02);
+      color: #e5e0d8;
+      border-radius: 999px;
+      padding: 0.65rem 0.9rem;
+      text-align: left;
+    }
+    .album-card {
+      background: var(--panel);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      overflow: hidden;
+      transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+    }
+    .album-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(229,193,88,.42);
+      box-shadow: 0 20px 50px rgba(0,0,0,.18);
+    }
+    .preview-frame {
+      position: relative;
+      aspect-ratio: 1.6/1;
+      overflow: hidden;
+      background: linear-gradient(135deg, #2d2a28, #181818 55%, #5c3523);
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-user-drag: none;
+    }
+    .preview-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: .8;
+      filter: saturate(.82) contrast(1.04);
+      pointer-events: none;
+    }
+    .watermark {
+      position: absolute;
+      inset: -26%;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: repeat(3, minmax(0, 1fr));
+      place-items: center;
+      transform: rotate(-45deg);
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .watermark span {
+      color: rgba(255,255,255,.25);
+      font-size: clamp(.55rem, 1vw, .8rem);
+      font-weight: 700;
+      letter-spacing: .2em;
+      white-space: nowrap;
+      text-shadow: 0 1px 5px rgba(0,0,0,.35);
+    }
+    .cover-tag {
+      position: absolute;
+      left: 12px;
+      top: 12px;
+      z-index: 2;
+      padding: 0.38rem 0.68rem;
+      border: 1px solid rgba(229,193,88,0.35);
+      border-radius: 999px;
+      background: rgba(18,18,18,.72);
+      color: #f3d987;
+      font-size: 0.62rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      backdrop-filter: blur(8px);
+    }
+    .price-badge {
+      border: 1px solid rgba(229,193,88,.22);
+      background: rgba(229,193,88,.06);
+      color: #f0d47f;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border: none;
+      border-radius: 999px;
+      background: var(--gold);
+      color: #17140c;
+      padding: 0.82rem 1.25rem;
+      font-weight: 700;
+      transition: filter .2s ease, transform .2s ease;
+      cursor: pointer;
+    }
+    .btn-primary:hover { filter: brightness(1.08); transform: translateY(-1px); }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 999px;
+      padding: 0.72rem 1.15rem;
+      background: rgba(255,255,255,.02);
+      color: #f0ebdf;
+      transition: all .2s ease;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { border-color: rgba(229,193,88,.46); background: rgba(229,193,88,.06); }
+    .btn-danger {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      border: 1px solid rgba(251,113,133,.26);
+      border-radius: 999px;
+      padding: 0.72rem 1.05rem;
+      color: #fecdd3;
+      background: rgba(190,24,93,.08);
+      cursor: pointer;
+    }
+    .control {
+      width: 100%;
+      border: 1px solid #35342f;
+      border-radius: 11px;
+      background: #141413;
+      color: #f5f1e8;
+      padding: 0.76rem 0.88rem;
+    }
+    .field-label { font-size: .72rem; color: #b7b0a4; }
+    .panel-box {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 18px;
+      padding: 1.1rem;
+    }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(0,0,0,.76);
+      backdrop-filter: blur(8px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-card {
+      width: min(100%, 540px);
+      max-height: min(88vh, 860px);
+      overflow: auto;
+      background: #1b1b19;
+      border: 1px solid rgba(229,193,88,.22);
+      border-radius: 20px;
+      box-shadow: 0 28px 100px rgba(0,0,0,.5);
+      animation: modalIn .2s ease-out;
+    }
+    .modal-card.modal-wide { width: min(100%, 1100px); }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(10px) scale(.99); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .bottom-nav {
+      padding-bottom: max(.55rem, env(safe-area-inset-bottom));
+    }
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 6rem;
+      z-index: 120;
+      transform: translate(-50%, 15px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s ease;
+      background: #26251f;
+      border: 1px solid rgba(229,193,88,.3);
+      padding: 0.75rem 1rem;
+      border-radius: 12px;
+      color: #fff2c5;
+      max-width: min(90vw, 480px);
+      box-shadow: 0 15px 45px rgba(0,0,0,.4);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0); 
+    }
+    .pin-box {
+      font-family: monospace;
+      letter-spacing: .28em;
+    }
+    .table-scroll { overflow-x: auto; }
+    .table-scroll table { width: 100%; border-collapse: collapse; }
+    .table-scroll th, .table-scroll td { padding: .7rem .6rem; border-bottom: 1px solid rgba(255,255,255,.06); text-align: left; }
+    @media (max-width: 1024px) {
+      .sidebar { display: none; }
+      .main-shell { margin-left: 0; }
+    }
+    @media (max-width: 767px) {
+      .hero { min-height: 420px; }
+      .hero h1 { font-size: clamp(2.2rem, 9vw, 4.1rem); }
+      .photo-grid { grid-template-columns: 1fr; }
+      .mobile-hidden { display: none !important; }
+    }
+    @media (min-width: 768px) {
+      .mobile-only { display: none !important; }
+    }
   </style>
 </head>
 <body>
-  <aside class="sidebar fixed inset-y-0 left-0 z-40 hidden lg:flex flex-col px-5 py-6">
-    <a href="#top" class="flex items-center gap-3 px-2" aria-label="ImagineWorks Studio beranda">
-      <span class="relative grid h-12 w-12 place-items-center overflow-hidden rounded-full border border-gold/50 bg-[#25231d] text-sm font-bold text-gold">
-        <img src="logo-05-01.jpg" alt="IMA" class="absolute inset-0 h-full w-full object-cover" onerror="if(this.dataset.retried){this.remove();this.parentElement.querySelector('.logo-fallback').classList.remove('hidden')}else{this.dataset.retried='true';this.src='assets/studio-mark.svg'}">
-        <span class="logo-fallback hidden">IMA</span>
-      </span>
-      <span><span class="block text-[.72rem] font-bold tracking-[.18em]">IMAGINEWORKS</span><span class="mt-1 block text-[.62rem] tracking-[.24em] text-stone-500">STUDIO</span></span>
-    </a>
-    <div class="gold-line my-8"></div>
-    <p class="eyebrow mb-3 px-3">Jelajahi</p>
-    <nav class="space-y-1" aria-label="Navigasi utama">
-      <a class="nav-link active" href="#gallery"><span class="nav-number">01</span><span>Galeri</span></a>
-      <a class="nav-link" href="#booking"><span class="nav-number">02</span><span>Booking Sesi</span></a>
-      <a class="nav-link" href="#orders"><span class="nav-number">03</span><span>Cek Pesanan</span></a>
-      <a class="nav-link" href="#photos"><span class="nav-number">04</span><span>Foto Saya</span></a>
-    </nav>
-    <div class="mt-auto rounded-2xl border border-gold/20 bg-gradient-to-br from-[#26241e] to-[#1a1a19] p-4">
-      <span class="eyebrow">Rencanakan Sesi</span>
-      <p class="mt-3 font-serif text-xl">Satu cerita,<br>dibingkai abadi.</p>
-      <a href="#booking" class="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-gold">Mulai rencana <span aria-hidden="true">↗</span></a>
+  <aside class="sidebar mobile-hidden">
+    <div class="flex items-center gap-3 px-2 pb-3">
+      <div class="logo-mark">IMA</div>
+      <div>
+        <div class="text-sm tracking-[.22em] text-stone-400 uppercase">ImagineWorks</div>
+        <div class="text-xs text-stone-500">Studio</div>
+      </div>
     </div>
-    <button id="adminReveal" class="mt-5 px-3 text-left text-xs text-stone-600 hover:text-gold" type="button">Akses studio</button>
-    <p class="mt-3 px-3 text-[.62rem] tracking-wider text-stone-600">© <span class="year-now"></span> IMAGINEWORKS</p>
+
+    <nav class="mt-6 space-y-1">
+      <a href="#gallery" class="nav-link active"><span class="nav-number">01</span><span>Galeri</span></a>
+      <a href="#booking" class="nav-link"><span class="nav-number">02</span><span>Booking Sesi</span></a>
+      <a href="#orders" class="nav-link"><span class="nav-number">03</span><span>Cek Pesanan</span></a>
+      <a href="#photos" class="nav-link"><span class="nav-number">04</span><span>Foto Saya</span></a>
+    </nav>
+
+    <div class="gold-line"></div>
+
+    <div class="mini-card">
+      <p class="eyebrow">Rencanakan Sesi</p>
+      <p class="mt-3 text-sm leading-6 text-stone-300">Jadikan momen Anda punya cerita visual yang bersinar, rapi, dan siap diingat selamanya.</p>
+      <button id="sidebarBookingButton" class="btn-primary mt-4 w-full" type="button">Booking Sekarang</button>
+    </div>
+
+    <div class="mini-card mt-4">
+      <p class="eyebrow">Admin</p>
+      <button id="openAdminWindow" class="btn-secondary mt-3 w-full" type="button">Panel Super Admin</button>
+    </div>
   </aside>
 
-  <div class="main-shell" id="top">
-    <header class="sticky top-0 z-50 border-b border-white/5 bg-[#121212]/95 backdrop-blur-lg">
-      <div class="ticker border-b border-white/[.04] py-2 text-[.63rem] tracking-[.12em] text-stone-400">
-        <div class="ticker-track"><span class="mx-8"><span class="text-gold">CATATAN STUDIO</span> — Jadwalkan sesi foto personal untuk momen yang ingin Anda simpan lebih lama.</span><span class="mx-8"><span class="text-gold">CATATAN STUDIO</span> — Jadwalkan sesi foto personal untuk momen yang ingin Anda simpan lebih lama.</span></div>
-      </div>
-      <div class="flex h-[58px] items-center justify-between px-4 sm:px-7 lg:px-10">
-        <a class="flex items-center gap-2.5 lg:hidden" href="#top">
-          <span class="grid h-9 w-9 place-items-center rounded-full border border-gold/50 bg-[#25231d] text-xs font-bold text-gold">IMA</span>
-          <span class="text-[.68rem] font-bold tracking-[.16em]">IMAGINEWORKS <span class="text-stone-500">STUDIO</span></span>
-        </a>
-        <div class="hidden text-xs tracking-[.18em] text-stone-500 lg:block">PHOTOGRAPHY, WITH INTENTION</div>
-        <div class="flex items-center gap-3">
-          <a href="#booking" class="hidden rounded-full border border-gold/35 px-4 py-2 text-xs font-semibold text-gold transition hover:bg-gold hover:text-ink sm:inline-flex">Jadwalkan Sesi</a>
-          <button id="mobileMenuButton" class="grid h-10 w-10 place-items-center rounded-full border border-white/10 text-stone-100 lg:hidden" aria-label="Buka menu" aria-expanded="false" type="button"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+  <div class="main-shell">
+    <header class="border-b border-white/5 bg-[#161615]/80 backdrop-blur-sm">
+      <div class="ticker">
+        <div class="ticker-track text-[.7rem] uppercase tracking-[.18em] text-stone-300">
+          <span class="mx-4 text-gold">Jadwalkan sesi foto personal</span>
+          <span class="mx-4">•</span>
+          <span class="mx-4">Sports / Running coverage</span>
+          <span class="mx-4">•</span>
+          <span class="mx-4">Acara & perayaan cinematic</span>
+          <span class="mx-4">•</span>
+          <span class="mx-4 text-gold">Jadwalkan sesi foto personal</span>
+          <span class="mx-4">•</span>
+          <span class="mx-4">Sports / Running coverage</span>
+          <span class="mx-4">•</span>
+          <span class="mx-4">Acara & perayaan cinematic</span>
         </div>
       </div>
-      <div id="mobileMenu" class="mobile-menu fixed inset-0 z-[70] bg-black/75 p-4 pt-20 lg:hidden">
-        <div class="mx-auto max-w-lg rounded-2xl border border-white/10 bg-[#171716] p-5 shadow-2xl">
-          <div class="mb-4 flex items-center justify-between"><p class="eyebrow">Navigasi Studio</p><button id="mobileMenuClose" class="grid h-9 w-9 place-items-center rounded-full border border-white/10 text-xl text-stone-400" type="button" aria-label="Tutup menu">×</button></div>
-          <nav class="grid grid-cols-2 gap-2" aria-label="Navigasi mobile">
-            <a class="nav-link" href="#gallery"><span class="nav-number">01</span> Galeri</a><a class="nav-link" href="#booking"><span class="nav-number">02</span> Booking Sesi</a>
-            <a class="nav-link" href="#orders"><span class="nav-number">03</span> Cek Pesanan</a><a class="nav-link" href="#photos"><span class="nav-number">04</span> Foto Saya</a>
-            <button class="nav-link text-left" data-admin-reveal type="button"><span class="nav-number">✦</span> Akses studio</button>
-          </nav>
+
+      <div class="mobile-only flex items-center justify-between px-4 py-3">
+        <div class="flex items-center gap-3">
+          <div class="logo-mark" style="width:36px;height:36px;font-size:.7rem;">IMA</div>
+          <div>
+            <div class="text-[.62rem] uppercase tracking-[.2em] text-stone-400">ImagineWorks</div>
+          </div>
+        </div>
+        <button id="mobileMenuButton" class="btn-secondary !px-3 !py-2" type="button" aria-label="Buka menu">☰</button>
+      </div>
+
+      <div id="mobileMenu" class="mobile-only hidden border-t border-white/10 bg-[#161615] px-4 py-3">
+        <div class="space-y-2">
+          <a href="#gallery" class="block rounded-xl border border-white/10 px-3 py-2 text-sm text-stone-200">Galeri</a>
+          <a href="#booking" class="block rounded-xl border border-white/10 px-3 py-2 text-sm text-stone-200">Booking Sesi</a>
+          <a href="#orders" class="block rounded-xl border border-white/10 px-3 py-2 text-sm text-stone-200">Cek Pesanan</a>
+          <a href="#photos" class="block rounded-xl border border-white/10 px-3 py-2 text-sm text-stone-200">Foto Saya</a>
+          <button id="mobileAdminButton" class="btn-primary mt-2 w-full" type="button">Panel Admin</button>
         </div>
       </div>
     </header>
 
-    <main>
-      <section class="px-4 pt-5 sm:px-7 lg:px-10 lg:pt-8">
-        <div class="hero rounded-[22px] border border-white/[.07] p-6 sm:p-10 lg:p-14">
+    <main class="px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
+      <section id="gallery" class="space-y-5">
+        <div class="hero glass-card p-5 sm:p-7 lg:p-9">
           <div class="hero-orb"></div>
-          <div class="relative z-10 max-w-[620px]">
-            <span class="eyebrow">ImagineWorks Studio · Est. for your story</span>
-            <h1 class="serif mt-5 max-w-[600px] text-[2.6rem] leading-[1.08] sm:text-6xl">Capturing Your Imagination Into Reality</h1>
-            <p class="mt-5 max-w-[440px] text-sm leading-7 text-stone-300 sm:text-base">Ruang untuk momen personal, energi olahraga, dan perayaan yang layak dikenang.</p>
-            <div class="mt-7 flex flex-wrap gap-3"><a href="#gallery" class="btn-primary">Jelajahi Galeri <span aria-hidden="true">↗</span></a><a href="#booking" class="btn-secondary">Rencanakan Sesi</a></div>
-            <p id="connectionNote" class="mt-5 text-[.7rem] text-stone-500">Menghubungkan galeri studio…</p>
-          </div>
-          <div class="absolute bottom-5 right-6 hidden text-right text-[.6rem] tracking-[.23em] text-white/45 sm:block">LIGHT · MOMENT · MEMORY</div>
-        </div>
-      </section>
-
-      <section id="gallery" class="px-4 py-16 sm:px-7 lg:px-10 lg:py-20">
-        <div class="flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div><p class="eyebrow">01 / Pilihan Cerita</p><h2 class="serif mt-3 text-3xl sm:text-4xl">Galeri Studio</h2><p class="mt-2 max-w-xl text-sm leading-6 text-stone-400">Temukan album yang tepat. Pratinjau dilindungi watermark; detail akses penuh tersedia setelah pembelian.</p></div>
-          <span id="albumCount" class="text-xs tracking-[.12em] text-stone-500">— ALBUM</span>
-        </div>
-        <div class="mt-8 rounded-2xl border border-white/[.07] bg-panel p-4 sm:p-5">
-          <div class="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
-            <label class="block text-xs text-stone-400">Kategori
-              <select id="categoryFilter" class="control mt-2"><option value="all">Semua Kategori</option><option value="sports_running">Sports/Lari</option><option value="personal">Sesi Personal</option><option value="celebration">Acara &amp; Perayaan</option></select>
-            </label>
-            <label class="block text-xs text-stone-400">Tanggal event
-              <input id="dateFilter" class="control mt-2" type="date" aria-label="Filter tanggal event">
-            </label>
-            <button id="clearFilters" class="btn-secondary h-[46px] sm:min-w-[122px]" type="button">Atur ulang</button>
-          </div>
-        </div>
-        <div id="galleryGrid" class="album-grid mt-6" aria-live="polite"></div>
-        <div id="emptyGallery" class="hidden mt-6 rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-stone-400">Belum ada album yang cocok dengan filter ini.</div>
-      </section>
-
-      <section id="booking" class="border-y border-white/[.06] bg-[#171716] px-4 py-16 sm:px-7 lg:px-10 lg:py-20">
-        <div class="grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
-          <div><p class="eyebrow">02 / Booking Sesi</p><h2 class="serif mt-3 text-3xl leading-tight sm:text-4xl">Rencanakan momen<br>berikutnya.</h2><p class="mt-4 max-w-lg text-sm leading-7 text-stone-400">Ceritakan jenis sesi dan tanggal yang Anda inginkan. Tim studio akan membantu merancang pengalaman yang terasa personal.</p><div class="mt-7 flex items-center gap-4 text-xs text-stone-500"><span class="h-px w-12 bg-gold/60"></span>Personal · Sports · Celebration</div></div>
-          <form id="bookingForm" class="rounded-2xl border border-white/[.07] bg-[#1d1d1b] p-5 sm:p-7">
-            <div class="grid gap-4 sm:grid-cols-2"><label class="text-xs text-stone-400">Nama<input id="bookingName" required maxlength="80" class="control mt-2" placeholder="Nama Anda"></label><label class="text-xs text-stone-400">Jenis sesi<select id="bookingCategory" class="control mt-2"><option>Sesi Personal</option><option>Sports/Lari</option><option>Acara &amp; Perayaan</option></select></label></div>
-            <label class="mt-4 block text-xs text-stone-400">Tanggal pilihan<input id="bookingDate" required type="date" class="control mt-2"></label>
-            <label class="mt-4 block text-xs text-stone-400">Catatan singkat<textarea id="bookingNotes" rows="3" maxlength="400" class="control mt-2 resize-y" placeholder="Konsep, lokasi, atau hal yang ingin Anda abadikan…"></textarea></label>
-            <button class="btn-primary btn-flame mt-5 w-full" type="submit">Kirim Rencana via WhatsApp <span aria-hidden="true">↗</span></button>
-            <p class="mt-3 text-center text-[.68rem] text-stone-600">Nomor WhatsApp studio diatur melalui konfigurasi publik.</p>
-          </form>
-        </div>
-      </section>
-
-      <section id="orders" class="px-4 py-16 sm:px-7 lg:px-10 lg:py-20">
-        <div class="grid gap-8 md:grid-cols-[1fr_auto] md:items-end">
-          <div><p class="eyebrow">03 / Cek Pesanan</p><h2 class="serif mt-3 text-3xl sm:text-4xl">Pantau pembayaran.</h2><p class="mt-3 max-w-2xl text-sm leading-7 text-stone-400">Pesanan tersimpan di Supabase dan dapat dicek dari tab ini. Admin studio memeriksa transfer sebelum PIN akses diterbitkan.</p></div>
-          <button id="checkOrderButton" class="btn-secondary" type="button">Cek status pesanan saya</button>
-        </div>
-        <div id="orderStatusBox" class="mt-6 hidden rounded-2xl border border-white/[.07] bg-panel p-5 text-sm"></div>
-      </section>
-
-      <section id="photos" class="border-y border-white/[.06] bg-[#171716] px-4 py-16 sm:px-7 lg:px-10 lg:py-20">
-        <div class="grid gap-10 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
-          <div><p class="eyebrow">04 / Foto Saya</p><h2 class="serif mt-3 text-3xl leading-tight sm:text-4xl">Kembali ke<br>kenangan Anda.</h2><p class="mt-4 max-w-lg text-sm leading-7 text-stone-400">Masukkan PIN enam digit yang diterima setelah pembayaran tervalidasi. Akses berlaku hingga 60 hari sejak PIN dibuat.</p><div class="mt-6 flex items-center gap-3 text-xs text-stone-500"><span class="grid h-9 w-9 place-items-center rounded-full border border-gold/25 text-gold">60</span>Hari masa akses foto</div></div>
-          <form id="pinLookupForm" class="rounded-2xl border border-white/[.07] bg-[#1d1d1b] p-5 sm:p-7">
-            <label for="pinInput" class="text-xs tracking-wider text-stone-400">PIN 6-DIGIT</label>
-            <input id="pinInput" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" minlength="6" maxlength="6" class="control pin-box mt-2 text-center text-2xl" placeholder="••••••" required aria-label="Masukkan PIN enam digit">
-            <button class="btn-primary mt-4 w-full" type="submit">Verifikasi &amp; Cari Foto <span aria-hidden="true">↗</span></button>
-            <div id="pinResult" class="mt-4 hidden rounded-xl border border-white/10 bg-black/20 p-4" aria-live="polite"></div>
-          </form>
-        </div>
-      </section>
-
-      <section id="adminPanel" class="hidden px-4 py-16 sm:px-7 lg:px-10">
-        <div class="flex flex-wrap items-end justify-between gap-4"><div><p class="eyebrow">Studio / Admin</p><h2 class="serif mt-3 text-3xl">Control Panel</h2><p class="mt-2 text-sm text-stone-400">Akses data tetap dilindungi Supabase Auth dan kebijakan RLS.</p></div><button id="adminLogout" class="btn-secondary" type="button">Keluar</button></div>
-        <div id="adminLoginWrap" class="mt-6 max-w-xl rounded-2xl border border-white/10 bg-panel p-5 sm:p-7">
-          <form id="adminLoginForm" class="space-y-4"><label class="block text-xs text-stone-400">Email admin<input id="adminEmail" required type="email" autocomplete="username" class="control mt-2"></label><label class="block text-xs text-stone-400">Password<input id="adminPassword" required type="password" autocomplete="current-password" class="control mt-2"></label><button class="btn-primary w-full" type="submit">Masuk ke Studio</button></form>
-          <p id="adminLoginMessage" class="mt-3 text-xs text-rose-300"></p>
-        </div>
-        <div id="adminContent" class="admin-content mt-6 rounded-2xl border border-white/10 bg-panel p-5 sm:p-7">
-          <div class="mb-8 rounded-2xl border border-gold/20 bg-black/20 p-4 sm:p-5">
-            <div class="flex flex-wrap items-center justify-between gap-3"><div><h3 class="serif text-2xl">Order manual menunggu</h3><p class="mt-1 text-xs text-stone-400">Cocokkan transfer di luar situs sebelum menandai order lunas. Konfirmasi menerbitkan PIN.</p></div><button id="refreshManualOrders" class="btn-secondary" type="button">Muat ulang</button></div>
-            <div id="manualOrdersList" class="mt-4 space-y-3" aria-live="polite"><p class="text-sm text-stone-500">Login admin untuk memuat order.</p></div>
-          </div>
-          <h3 class="serif text-2xl">Tambah album event</h3>
-          <form id="adminAlbumForm" class="mt-5 grid gap-4 md:grid-cols-2">
-            <label class="text-xs text-stone-400">Judul<input id="adminTitle" required maxlength="120" class="control mt-2"></label>
-            <label class="text-xs text-stone-400">Tanggal Event<input id="adminEventDate" required type="date" class="control mt-2"></label>
-            <label class="text-xs text-stone-400">Kategori<select id="adminCategory" class="control mt-2"><option value="sports_running">Sports/Lari</option><option value="personal">Sesi Personal</option><option value="celebration">Acara &amp; Perayaan</option></select></label>
-            <label class="text-xs text-stone-400">Tipe Harga<select id="adminPriceType" class="control mt-2"><option value="per_photo">Per lembar / eceran</option><option value="package">Per event / paket all-in</option></select></label>
-            <label class="text-xs text-stone-400 md:col-span-2">Nominal Rp<input id="adminPrice" required type="number" min="1" step="1" class="control mt-2" placeholder="Contoh: 15000"></label>
-            <label class="text-xs text-stone-400 md:col-span-2">URL cover opsional<input id="adminCoverUrl" type="url" class="control mt-2" placeholder="Cover otomatis memakai preview foto pertama yang diunggah"></label>
-            <div class="md:col-span-2"><button class="btn-primary" type="submit">Simpan Album</button><p id="adminAlbumMessage" class="mt-3 text-xs text-stone-400"></p></div>
-          </form>
-          <div class="mt-10 rounded-2xl border border-gold/20 bg-black/20 p-4 sm:p-5">
-            <div><h3 class="serif text-2xl">Upload foto album</h3><p class="mt-1 text-xs leading-5 text-stone-400">Foto asli disimpan private. Website membuat preview lebih kecil untuk galeri; foto asli hanya bisa diakses setelah PIN valid.</p></div>
-            <div class="mt-5 grid gap-4 md:grid-cols-2">
-              <label class="text-xs text-stone-400">Pilih album<select id="uploadAlbumSelect" class="control mt-2"><option value="">Muat album…</option></select></label>
-              <label class="text-xs text-stone-400">Pilih foto (JPG, PNG, WebP)<input id="adminPhotoFiles" class="control mt-2" type="file" accept="image/jpeg,image/png,image/webp" multiple></label>
+          <div class="relative z-10 max-w-xl">
+            <p class="eyebrow">ImagineWorks Studio</p>
+            <h1 class="serif mt-5 text-4xl leading-[0.96] sm:text-5xl lg:text-7xl">Capturing Your Imagination Into Reality</h1>
+            <p class="mt-5 max-w-md text-sm leading-7 text-stone-300 sm:text-base">Fotografi personal, sport, dan perayaan dalam visual yang elegan, terarah, dan siap dibagikan dengan aman.</p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button id="heroBookButton" class="btn-primary" type="button">Jadwalkan Sesi</button>
+              <button id="heroViewGalleryButton" class="btn-secondary" type="button">Lihat Galeri</button>
             </div>
-            <div class="mt-4 flex flex-wrap items-center gap-3"><button id="uploadPhotosButton" class="btn-primary" type="button">Upload foto</button><span id="adminUploadProgress" class="text-xs text-stone-400" aria-live="polite">Maksimum 50 MB per foto.</span></div>
-            <div id="uploadedPhotoList" class="mt-4 space-y-2 text-xs text-stone-400" aria-live="polite"></div>
-            <section class="mt-8 rounded-2xl border border-rose-300/15 bg-black/20 p-4 sm:p-5" aria-labelledby="manageAlbumContentTitle">
-              <div><h4 id="manageAlbumContentTitle" class="serif text-xl">Kelola album &amp; foto</h4><p class="mt-1 text-xs text-stone-400">Pilih album aktif maupun arsip. Foto yang dipilih dapat dihapus; album dengan riwayat pesanan akan diarsipkan.</p></div>
-              <div class="mt-4 grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-end">
-                <label class="text-xs text-stone-400">Album untuk dikelola<select id="manageAlbumSelect" class="control mt-2"><option value="">Login admin untuk memuat album…</option></select></label>
-                <button id="restoreArchivedAlbumButton" class="btn-secondary !border-emerald-300/25 !text-emerald-200 hidden" type="button" disabled>Tampilkan kembali</button>
-                <button id="deleteAlbumButton" class="btn-secondary !border-rose-300/25 !text-rose-200" type="button" disabled>Hapus / arsipkan album</button>
+          </div>
+          <div class="absolute right-4 bottom-4 z-10 hidden w-56 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-md lg:block">
+            <div class="text-[.62rem] uppercase tracking-[.18em] text-gold">Studio note</div>
+            <p class="mt-3 text-sm leading-6 text-stone-200">Momen terbaik Anda tidak perlu disimpan rumit. Kami menangkap, mengolah, dan menemani Anda hingga folder foto siap dibuka.</p>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p class="eyebrow">Galeri</p>
+              <h2 class="serif mt-2 text-3xl sm:text-4xl">Moments, Made Cinematic</h2>
+            </div>
+            <div class="grid gap-3 sm:grid-cols-2 lg:min-w-[420px]">
+              <label class="flex flex-col gap-2 text-xs text-stone-400">
+                Kategori
+                <select id="galleryCategoryFilter" class="control">
+                  <option value="all">Semua Kategori</option>
+                  <option value="sports_running">Sports / Lari</option>
+                  <option value="personal">Sesi Personal</option>
+                  <option value="celebration">Acara & Perayaan</option>
+                </select>
+              </label>
+              <label class="flex flex-col gap-2 text-xs text-stone-400">
+                Tanggal
+                <input id="galleryDateFilter" type="date" class="control" />
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div id="albumsGrid" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+      </section>
+
+      <section id="booking" class="mt-10 panel-box">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="eyebrow">Booking sesi</p>
+            <h2 class="serif mt-2 text-3xl">Sesi yang tepat untuk momen Anda.</h2>
+          </div>
+          <div class="flex flex-wrap gap-3">
+            <button data-open-booking="personal" class="btn-secondary" type="button">Personal Session</button>
+            <button data-open-booking="sports_running" class="btn-secondary" type="button">Sports / Running</button>
+            <button data-open-booking="celebration" class="btn-secondary" type="button">Event & Celebration</button>
+          </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 lg:grid-cols-3">
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <p class="text-gold text-xs uppercase tracking-[.15em]">01</p>
+            <h3 class="mt-3 text-xl font-semibold">Personal</h3>
+            <p class="mt-3 text-sm leading-6 text-stone-400">Potret editorial dengan gaya ringan, hangat, dan ekspresif.</p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <p class="text-gold text-xs uppercase tracking-[.15em]">02</p>
+            <h3 class="mt-3 text-xl font-semibold">Sports</h3>
+            <p class="mt-3 text-sm leading-6 text-stone-400">Visual dinamis untuk latar lari, training, dan momen kompetisi.</p>
+          </div>
+          <div class="rounded-2xl border border-white/10 bg-black/20 p-5">
+            <p class="text-gold text-xs uppercase tracking-[.15em]">03</p>
+            <h3 class="mt-3 text-xl font-semibold">Celebration</h3>
+            <p class="mt-3 text-sm leading-6 text-stone-400">Panggung acara, perayaan, serta momen keluarga dengan fokus nilai emosional.</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="orders" class="mt-10 panel-box">
+        <p class="eyebrow">Cek pesanan</p>
+        <h2 class="serif mt-2 text-3xl">Lacak status pembelian foto Anda</h2>
+        <div class="mt-6 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
+          <label class="block">
+            <span class="field-label">PIN 6 Digit</span>
+            <input id="pinInput" class="control mt-2 tracking-[0.4em] uppercase" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+          </label>
+          <button id="checkPinButton" class="btn-primary" type="button">Cek PIN</button>
+        </div>
+        <div id="pinResult" class="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-stone-300 min-h-[68px]">
+          Masukkan PIN untuk melihat akses foto original dan masa berlaku sesi Anda.
+        </div>
+      </section>
+
+      <section id="photos" class="mt-10 panel-box">
+        <p class="eyebrow">04 Foto Saya</p>
+        <h2 class="serif mt-2 text-3xl">Akses foto asli HD</h2>
+        <p class="mt-3 max-w-2xl text-sm leading-6 text-stone-400">Setelah PIN valid dan belum kedaluwarsa, Anda dapat mendownload foto original tanpa watermark langsung dari website.</p>
+
+        <div id="photoAccessBox" class="mt-6 rounded-2xl border border-white/10 bg-black/20 p-5">
+          <div class="flex flex-col gap-4 md:flex-row md:items-end">
+            <label class="block flex-1">
+              <span class="field-label">PIN aktif</span>
+              <input id="photoPinInput" class="control mt-2 tracking-[0.4em] uppercase" type="text" inputmode="numeric" maxlength="6" placeholder="123456" />
+            </label>
+            <button id="photoAccessButton" class="btn-primary" type="button">Buka Foto Saya</button>
+          </div>
+          <div id="photoAccessResult" class="mt-5 text-sm text-stone-400 min-h-[52px]">
+            Masukkan PIN untuk melihat foto yang sudah dibeli.
+          </div>
+        </div>
+      </section>
+
+      <section id="adminSection" class="mt-10 hidden panel-box">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="eyebrow">Control Panel</p>
+            <h2 class="serif mt-2 text-3xl">Super Admin</h2>
+          </div>
+          <button id="logoutAdminButton" class="btn-secondary !border-rose-300/25 !text-rose-200" type="button">Keluar Admin</button>
+        </div>
+
+        <div class="mt-6 grid gap-4 lg:grid-cols-2">
+          <div class="panel-box bg-[#111110]">
+            <h3 class="text-xl font-semibold">Tambah event baru</h3>
+            <div class="mt-4 space-y-4">
+              <label class="block">
+                <span class="field-label">Judul Event</span>
+                <input id="eventTitle" class="control mt-2" type="text" placeholder="City Run · Golden Hour" />
+              </label>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block">
+                  <span class="field-label">Tanggal</span>
+                  <input id="eventDate" class="control mt-2" type="date" />
+                </label>
+                <label class="block">
+                  <span class="field-label">Kategori</span>
+                  <select id="eventCategory" class="control mt-2">
+                    <option value="sports_running">Sports / Lari</option>
+                    <option value="personal">Sesi Personal</option>
+                    <option value="celebration">Acara & Perayaan</option>
+                  </select>
+                </label>
               </div>
-              <div id="storageCleanupNotice" class="hidden mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-orange-400/20 bg-orange-500/[.05] p-3">
-                <p id="storageCleanupMessage" class="text-xs leading-5 text-orange-100/80" aria-live="polite"></p>
-                <button id="retryStorageCleanupButton" class="btn-secondary !px-4 !py-2 text-xs" type="button">Coba bersihkan lagi</button>
+              <div class="grid gap-4 sm:grid-cols-2">
+                <label class="block">
+                  <span class="field-label">Tipe Harga</span>
+                  <select id="eventPriceType" class="control mt-2">
+                    <option value="per_photo">Per Lembar</option>
+                    <option value="package">Per Event</option>
+                  </select>
+                </label>
+                <label class="block">
+                  <span class="field-label">Nominal</span>
+                  <input id="eventPrice" class="control mt-2" type="number" min="0" step="1000" placeholder="15000" />
+                </label>
               </div>
-              <p id="managePhotoMessage" class="mt-4 text-xs text-stone-500" aria-live="polite">Pilih album untuk melihat foto yang dapat dikelola.</p>
-              <div id="managePhotosList" class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-4" aria-live="polite"></div>
-              <div class="mt-4 flex flex-wrap items-center justify-between gap-3"><span id="deletePhotoSelectionCount" class="text-xs text-stone-400">0 foto dipilih</span><button id="deleteSelectedPhotosButton" class="btn-secondary !border-rose-300/25 !text-rose-200" type="button" disabled>Hapus foto terpilih</button></div>
-              <p class="mt-3 text-[.68rem] leading-5 text-stone-600">Foto yang dirujuk order pending atau PIN aktif hingga 60 hari ditambah masa aman satu jam tidak dapat dihapus. Order pending hanya boleh dibatalkan setelah transfer dipastikan belum diterima. Album ber-riwayat akan diarsipkan, bukan menghapus riwayat atau akses pembeli.</p>
-            </section>
+              <label class="block">
+                <span class="field-label">URL Foto Original / Direct Link</span>
+                <input id="eventPhotoUrl" class="control mt-2" type="url" placeholder="https://.../photo.jpg" />
+              </label>
+              <label class="block">
+                <span class="field-label">URL Cover Preview (opsional)</span>
+                <input id="eventCoverUrl" class="control mt-2" type="url" placeholder="https://.../cover.jpg" />
+              </label>
+              <button id="saveEventButton" class="btn-primary w-full" type="button">Simpan Event</button>
+            </div>
+          </div>
+
+          <div class="panel-box bg-[#111110]">
+            <h3 class="text-xl font-semibold">Daftar event</h3>
+            <div id="adminEventList" class="table-scroll mt-4"></div>
           </div>
         </div>
       </section>
     </main>
 
     <footer class="border-t border-white/[.06] px-4 py-8 text-xs text-stone-600 sm:px-7 lg:px-10">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><span>© <span class="year-now"></span> ImagineWorks Studio. Dibuat untuk cerita Anda.</span><span>Studio access by invitation · <button data-admin-reveal class="text-stone-500 underline decoration-stone-700 underline-offset-4 hover:text-gold" type="button">Admin</button></span></div>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <span>© <span id="yearNow"></span> ImagineWorks Studio. Dibuat untuk cerita Anda.</span>
+        <span>Studio access by invitation · <button id="footerAdminButton" class="text-stone-500 underline decoration-stone-700 underline-offset-4 hover:text-gold" type="button">Admin</button></span>
+      </div>
     </footer>
   </div>
 
@@ -285,769 +636,806 @@
     <a class="flex flex-col items-center gap-1 py-1.5 text-[.58rem] text-stone-400" href="#orders"><span class="text-base text-gold">⌕</span>Pesanan</a>
     <a class="flex flex-col items-center gap-1 py-1.5 text-[.58rem] text-stone-400" href="#photos"><span class="text-base text-gold">▣</span>Foto Saya</a>
   </nav>
-  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
-  <div id="albumGalleryModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="albumGalleryTitle">
-    <div class="modal-card modal-wide p-4 sm:p-6" id="albumGalleryScroll">
-      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow">Pilih Foto Album</p><h2 id="albumGalleryTitle" class="serif mt-2 text-2xl sm:text-3xl"></h2><p id="albumGalleryMeta" class="mt-2 text-xs text-stone-400"></p></div><button class="close-modal grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="albumGalleryModal" aria-label="Tutup galeri album" type="button">×</button></div>
-      <p class="mt-4 rounded-xl border border-orange-500/20 bg-orange-500/[.05] p-3 text-xs leading-5 text-orange-100/80">Preview dapat disimpan pengunjung. File asli tetap privat dan hanya mendapat tautan unduh sementara setelah PIN valid.</p>
-      <p id="albumGalleryMessage" class="mt-5 text-sm text-stone-400" role="status" aria-live="polite">Memuat foto…</p>
-      <div id="albumPhotosGrid" class="photo-grid mt-5"></div>
-      <div class="sticky bottom-0 mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 bg-[#1b1b19]/95 py-4 backdrop-blur">
-        <div><p id="albumSelectionCount" class="text-xs text-stone-400">0 foto dipilih</p><p id="albumSelectionTotal" class="mt-1 font-semibold text-gold">Rp0</p></div>
-        <button id="continueToCheckout" class="btn-primary" type="button" disabled>Lanjut ke checkout <span aria-hidden="true">↗</span></button>
-      </div>
-    </div>
-  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <div id="checkoutModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
     <div class="modal-card p-5 sm:p-7">
-      <div class="flex items-start justify-between gap-4"><div><p class="eyebrow">Checkout Aman</p><h2 id="checkoutTitle" class="serif mt-2 text-2xl">Siapkan pembayaran</h2><p id="checkoutAlbumTitle" class="mt-1 text-sm text-stone-400"></p></div><button class="close-modal grid h-9 w-9 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="checkoutModal" aria-label="Tutup" type="button">×</button></div>
-      <div id="quantityPanel" class="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
-        <div class="flex items-center justify-between gap-4"><div><p class="text-xs text-stone-400">Foto pilihan</p><p id="unitPrice" class="mt-1 text-sm font-semibold text-gold"></p></div><div class="text-right"><span id="qtyValue" class="font-semibold">0</span><span class="ml-1 text-xs text-stone-400">foto dipilih</span></div></div>
-      </div>
-      <div id="packagePanel" class="mt-6 hidden rounded-xl border border-gold/20 bg-gold/[.05] p-4 text-sm text-stone-300">Paket all-in: harga dikunci untuk seluruh event. Tidak ada pengaturan kuantitas foto.</div>
-      <div class="mt-4 flex items-center justify-between border-b border-white/10 pb-4"><span class="text-sm text-stone-400">Total pembayaran</span><strong id="checkoutTotal" class="text-xl text-gold">Rp0</strong></div>
-      <p id="checkoutPhotoNames" class="mt-3 max-h-20 overflow-auto text-xs leading-5 text-stone-500"></p>
-      <div id="manualBuyerFields" class="mt-5 grid gap-3 sm:grid-cols-2">
-        <label class="text-xs text-stone-400">Nama pemesan<input id="manualBuyerName" required maxlength="80" autocomplete="name" class="control mt-2" placeholder="Nama sesuai transfer"></label>
-        <label class="text-xs text-stone-400">Nomor WhatsApp<input id="manualBuyerContact" required type="tel" inputmode="tel" maxlength="30" autocomplete="tel" class="control mt-2" placeholder="08…"></label>
-        <p class="sm:col-span-2 text-[.68rem] leading-5 text-stone-600">Nama dan nomor disimpan privat untuk pencocokan order oleh admin.</p>
-      </div>
-      <div id="checkoutBeforePayment" class="mt-5">
-        <p id="manualSetupWarning" class="hidden rounded-xl border border-orange-500/20 bg-orange-500/[.05] p-3 text-xs leading-5 text-orange-100/80">Detail rekening belum diatur. Isi `BANK_TRANSFER` di `env.js` sebelum menerima pembayaran.</p>
-        <p class="mt-3 text-xs leading-5 text-stone-500">Buat pesanan transfer. Total dihitung ulang oleh server; PIN diterbitkan setelah admin memeriksa pembayaran.</p>
-        <button id="createPaymentButton" class="btn-primary mt-5 w-full" type="button">Lanjut ke Transfer Manual <span aria-hidden="true">↗</span></button>
-      </div>
-      <div id="manualPaymentPanel" class="mt-5 hidden rounded-2xl border border-gold/20 bg-gold/[.04] p-4 sm:p-5">
-        <p class="eyebrow">Pembayaran Manual</p>
-        <div class="mt-3 rounded-xl border border-gold/20 bg-black/20 p-4">
-          <p class="text-xs uppercase tracking-wider text-gold">Transfer sesuai nominal berikut</p>
-          <p id="bankNameText" class="mt-3 font-semibold text-stone-100"></p>
-          <p id="accountNumberText" class="mt-1 select-all text-xl font-bold tracking-wider text-gold"></p>
-          <p id="accountHolderText" class="mt-1 text-xs text-stone-400"></p>
-          <p class="mt-3 text-xs text-stone-500">Total transfer</p>
-          <p id="transferAmountText" class="text-xl font-bold text-gold"></p>
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="eyebrow">Checkout Aman</p>
+          <h2 id="checkoutTitle" class="serif mt-2 text-2xl">Siapkan pembayaran</h2>
+          <p id="checkoutEventTitle" class="mt-1 text-sm text-stone-400"></p>
         </div>
-        <p id="manualOrderText" class="mt-4 break-all text-xs text-stone-400"></p>
-        <p id="manualPaymentInstructions" class="mt-3 whitespace-pre-line text-xs leading-5 text-stone-500"></p>
-        <a id="manualWhatsAppLink" class="btn-secondary mt-4 hidden w-full text-center" href="#" target="_blank" rel="noopener noreferrer">Kirim bukti transfer via WhatsApp <span aria-hidden="true">↗</span></a>
-        <div class="mt-4 flex flex-wrap items-center justify-between gap-3"><span id="manualPaymentStatus" class="text-xs text-amber-200">Menunggu konfirmasi admin.</span><div class="flex gap-2"><button id="copyManualOrderButton" class="btn-secondary !px-3 !py-2 text-xs" type="button">Salin ID</button><button id="manualCheckPayment" class="btn-secondary !px-3 !py-2 text-xs" type="button">Cek status</button></div></div>
+        <button class="close-modal grid h-9 w-9 shrink-0 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="checkoutModal" aria-label="Tutup" type="button">×</button>
       </div>
-      <div id="paymentQrPanel" class="mt-5 hidden text-center">
-        <div class="mx-auto grid min-h-[230px] w-[230px] place-items-center rounded-2xl bg-white p-3"><div id="qrCanvas"></div></div>
-        <p class="mt-4 text-sm font-semibold text-stone-200">Pindai QR dengan aplikasi pembayaran QRIS yang didukung.</p>
-        <p id="paymentOrderText" class="mt-2 break-all text-[.68rem] text-stone-500"></p>
-        <div class="mt-4 flex items-center justify-center gap-2 text-xs text-stone-400"><span class="h-2 w-2 animate-pulse rounded-full bg-gold"></span><span id="paymentStatusText">Menunggu pembayaran…</span></div>
-        <button id="midtransCheckPayment" class="btn-secondary mt-4" type="button">Periksa status sekarang</button>
+
+      <div class="mt-6 rounded-xl border border-white/10 bg-black/20 p-4">
+        <div class="flex items-center justify-between gap-4">
+          <div>
+            <p class="text-xs text-stone-400">Jumlah foto</p>
+            <p id="unitPriceLabel" class="mt-1 text-sm font-semibold text-gold"></p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button id="qtyMinus" class="grid h-9 w-9 place-items-center rounded-full border border-white/15 text-lg" type="button" aria-label="Kurangi jumlah">−</button>
+            <span id="qtyValue" class="min-w-6 text-center font-semibold">1</span>
+            <button id="qtyPlus" class="grid h-9 w-9 place-items-center rounded-full border border-white/15 text-lg" type="button" aria-label="Tambah jumlah">+</button>
+          </div>
+        </div>
       </div>
-      <p id="checkoutMessage" class="mt-4 text-xs text-rose-300"></p>
+
+      <div id="packageMessage" class="mt-6 hidden rounded-xl border border-gold/20 bg-gold/[.05] p-4 text-sm text-stone-300">Paket all-in: harga dikunci untuk seluruh event. Tidak ada pengaturan kuantitas foto.</div>
+
+      <div class="mt-4 flex items-center justify-between border-b border-white/10 pb-4">
+        <span class="text-sm text-stone-400">Total pembayaran</span>
+        <strong id="checkoutTotal" class="text-xl text-gold">Rp0</strong>
+      </div>
+
+      <div class="mt-5 grid gap-3 sm:grid-cols-2">
+        <label class="text-xs text-stone-400">Nama pemesan
+          <input id="buyerNameInput" class="control mt-2" maxlength="80" autocomplete="name" placeholder="Nama sesuai transfer" />
+        </label>
+        <label class="text-xs text-stone-400">Nomor WhatsApp
+          <input id="buyerPhoneInput" class="control mt-2" type="tel" inputmode="tel" maxlength="30" autocomplete="tel" placeholder="08…" />
+        </label>
+      </div>
+
+      <div class="mt-5 rounded-xl border border-gold/20 bg-gold/[.05] p-4">
+        <p class="text-xs uppercase tracking-wider text-gold">Transfer sesuai nominal berikut</p>
+        <p id="bankNameText" class="mt-3 font-semibold text-stone-100"></p>
+        <p id="accountNumberText" class="mt-1 select-all text-xl font-bold tracking-wider text-gold"></p>
+        <p id="accountHolderText" class="mt-1 text-xs text-stone-400"></p>
+        <p class="mt-3 text-xs text-stone-500">Total transfer</p>
+        <p id="transferAmountText" class="text-xl font-bold text-gold">Rp0</p>
+      </div>
+
+      <p id="checkoutMessage" class="mt-4 text-xs text-stone-500">Silakan transfer ke rekening yang tertera, lalu konfirmasi via WhatsApp agar admin mengaktifkan PIN Anda.</p>
+
+      <div class="mt-5 flex flex-wrap gap-3">
+        <button id="whatsappCheckoutButton" class="btn-primary" type="button">Konfirmasi via WhatsApp</button>
+        <button class="btn-secondary" type="button" data-close="checkoutModal">Batal</button>
+      </div>
     </div>
   </div>
 
-  <div id="successModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="successTitle">
-    <div class="modal-card p-6 text-center sm:p-8">
-      <button class="close-modal absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full border border-white/10 text-stone-400" data-close="successModal" aria-label="Tutup" type="button">×</button>
-      <span class="mx-auto grid h-14 w-14 place-items-center rounded-full border border-gold/35 bg-gold/10 text-2xl text-gold">✓</span>
-      <p class="eyebrow mt-5">Pembayaran Terkonfirmasi</p><h2 id="successTitle" class="serif mt-2 text-3xl">Kenangan Anda siap.</h2>
-      <p class="mt-3 text-sm leading-6 text-stone-400">Gunakan PIN untuk membuat tautan unduh sementara foto yang dibeli. Masa akses berakhir pada <span id="pinExpiry" class="text-stone-200"></span>.</p>
-      <div id="successPin" class="pin-box mt-6 rounded-2xl border border-gold/25 bg-black/25 py-5 text-3xl font-bold text-gold">••••••</div>
-      <div class="mt-4 flex flex-wrap justify-center gap-3"><button id="copyPinButton" class="btn-secondary" type="button">Salin PIN</button><button class="btn-primary" data-close="successModal" type="button">Selesai</button></div>
-      <p class="mt-5 text-[.68rem] leading-5 text-stone-600">PIN hanya diterbitkan setelah admin studio mengonfirmasi transfer yang sudah diterima.</p>
+  <div id="adminLoginModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="adminLoginTitle">
+    <div class="modal-card p-5 sm:p-7">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <p class="eyebrow">Masuk</p>
+          <h2 id="adminLoginTitle" class="serif mt-2 text-2xl">Admin Studio</h2>
+        </div>
+        <button class="close-modal grid h-9 w-9 place-items-center rounded-full border border-white/10 text-stone-400 hover:text-white" data-close="adminLoginModal" aria-label="Tutup" type="button">×</button>
+      </div>
+
+      <div class="mt-5 grid gap-4">
+        <label class="block text-xs text-stone-400">
+          Email admin
+          <input id="adminEmailInput" class="control mt-2" type="email" placeholder="admin@imagineworks.id" />
+        </label>
+        <label class="block text-xs text-stone-400">
+          Password admin
+          <input id="adminPasswordInput" class="control mt-2" type="password" placeholder="••••••••" />
+        </label>
+        <button id="adminLoginButton" class="btn-primary w-full" type="button">Masuk ke Panel</button>
+        <p class="text-[.68rem] leading-5 text-stone-500">Pastikan Supabase Auth sudah aktif dan config di <code>env.js</code> terisi. Jika belum, gunakan mode demo untuk pengujian lokal.</p>
+      </div>
     </div>
   </div>
 
   <script src="./env.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" referrerpolicy="no-referrer"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js" referrerpolicy="no-referrer"></script>
   <script>
-  (() => {
-    'use strict';
-    const CONFIG = window.IMAGINEWORKS_CONFIG || {};
-    const CATEGORY_LABELS = { sports_running:'Sports/Lari', personal:'Sesi Personal', celebration:'Acara & Perayaan' };
-    const DEMO_ALBUMS = [
-      { id:'demo-run',title:'City Run · Golden Hour',event_date:'2026-11-02',category:'sports_running',price_type:'per_photo',price_per_photo:15000,package_price:null,cover_url:null },
-      { id:'demo-portrait',title:'Portrait Session · Atelier',event_date:'2026-11-08',category:'personal',price_type:'per_photo',price_per_photo:25000,package_price:null,cover_url:null },
-      { id:'demo-celebration',title:'An Evening to Remember',event_date:'2026-11-15',category:'celebration',price_type:'package',price_per_photo:null,package_price:550000,cover_url:null }
-    ];
-    const state = { albums:[], adminAlbums:[], selectedAlbum:null, quantity:0, selectedPhotoIds:new Set(), albumPhotos:[], galleryRequestId:0, currentOrder:null, polling:false, pollTimer:null, supabase:null, admin:false, adminPhotos:[], selectedDeletePhotoIds:new Set() };
-    const $ = (selector, root=document) => root.querySelector(selector);
-    const $$ = (selector, root=document) => [...root.querySelectorAll(selector)];
-    const escapeHtml = (value='') => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const money = value => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(Number(value)||0);
-    const safeHttps = value => { try { const u = new URL(value); return u.protocol === 'https:' ? u.href : ''; } catch { return ''; } };
-    const configured = () => /^https:\/\/[\w.-]+\.supabase\.co\/?$/.test(String(CONFIG.SUPABASE_URL||'')) && String(CONFIG.SUPABASE_ANON_KEY||'').length > 20 && !String(CONFIG.SUPABASE_ANON_KEY).includes('YOUR_');
-    const toast = message => { const el=$('#toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toast.timer); toast.timer=setTimeout(()=>el.classList.remove('show'),3200); };
-    const showModal = id => { const el=document.getElementById(id); if(el){el.classList.add('open');document.body.style.overflow='hidden';} };
-    const closeModal = id => { const el=document.getElementById(id); if(el){el.classList.remove('open');document.body.style.overflow='';} if(id==='albumGalleryModal')state.galleryRequestId++; };
-    const setMessage = (selector, message, error=false) => { const el=$(selector); if(el){el.textContent=message;el.classList.toggle('text-rose-300',error);el.classList.toggle('text-stone-400',!error);} };
-    const functionUrl = () => String(CONFIG.FUNCTIONS_BASE_URL||`${String(CONFIG.SUPABASE_URL||'').replace(/\/$/,'')}/functions/v1`).replace(/\/$/,'');
-    async function invokeFunction(name, body) {
-      if (!CONFIG.FUNCTIONS_BASE_URL) return state.supabase.functions.invoke(name,{body});
-      const {data:authData}=await state.supabase.auth.getSession();
-      const headers={'apikey':String(CONFIG.SUPABASE_ANON_KEY||''),'Content-Type':'application/json'};
-      if(authData.session?.access_token) headers.Authorization=`Bearer ${authData.session.access_token}`;
-      const response=await fetch(`${functionUrl()}/${encodeURIComponent(name)}`,{method:'POST',headers,body:JSON.stringify(body)});
-      const data=await response.json().catch(()=>({ok:false,error:'Respons fungsi tidak valid.'}));
-      return {data,error:response.ok?null:new Error(data?.error||`HTTP ${response.status}`)};
-    }
-    const statusLabel = status => ({pending:'Menunggu pembayaran',paid:'Lunas',expired:'Kedaluwarsa',failed:'Gagal'}[status]||status||'Belum diketahui');
+    (() => {
+      'use strict';
 
-    const heroUrl=String(CONFIG.HERO_IMAGE_URL||'./assets/imagineworks-hero-optimized.jpg');
-    if (/^(https:\/\/|\/|\.\/)/.test(heroUrl)) {
-      document.documentElement.style.setProperty('--hero-image',`url("${heroUrl.replace(/["\\]/g,'')}")`);
-      const heroProbe=new Image();
-      heroProbe.onerror=()=>{const fallback=String(CONFIG.HERO_IMAGE_FALLBACK||'');if(fallback)document.documentElement.style.setProperty('--hero-image',`url("${fallback.replace(/["\\]/g,'')}")`);};
-      heroProbe.src=heroUrl;
-    }
-    document.querySelectorAll('.year-now').forEach(el=>el.textContent=new Date().getFullYear());
-    if (window.supabase && configured()) {
-      try { state.supabase = window.supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY); }
-      catch (error) { console.error('Supabase initialization failed',error); }
-    }
-
-    function renderGallery() {
-      const category=$('#categoryFilter').value, date=$('#dateFilter').value;
-      const matches=state.albums.filter(a=>(category==='all'||a.category===category)&&(!date||a.event_date===date));
-      $('#albumCount').textContent=`${matches.length.toString().padStart(2,'0')} ALBUM`;
-      $('#emptyGallery').classList.toggle('hidden',matches.length!==0);
-      $('#galleryGrid').innerHTML=matches.map(album=>{
-        const cover=safeHttps(album.cover_url||'');
-        const priceType=album.price_type==='package'?'PAKET ALL-IN':'PER FOTO';
-        const price=album.price_type==='package'?album.package_price:album.price_per_photo;
-        const category=escapeHtml(CATEGORY_LABELS[album.category]||'Sesi Studio');
-        return `<article class="album-card" data-album-card="${escapeHtml(album.id)}">
-          <div class="preview-frame" data-preview="true" data-category="${escapeHtml(album.category)}">
-            <div class="preview-placeholder" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke-width="1.2"><path d="M8 16h7l3-4h12l3 4h7a3 3 0 0 1 3 3v17a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V19a3 3 0 0 1 3-3Z"/><circle cx="24" cy="27" r="8"/><circle cx="37" cy="21" r="1" fill="currentColor"/></svg></div>
-            ${cover?`<img class="preview-image pointer-events-none select-none no-select" src="${escapeHtml(cover)}" alt="Pratinjau ber-watermark: ${escapeHtml(album.title)}" draggable="false" loading="lazy">`:''}
-            <div class="watermark no-select pointer-events-none select-none" aria-hidden="true">${Array.from({length:9},()=>'<span>IMAGINEWORKS STUDIO</span>').join('')}</div>
-            <span class="cover-tag">${category}</span>
-          </div>
-          <div class="p-4 sm:p-5"><div class="flex items-start justify-between gap-3"><div><p class="text-[.65rem] tracking-[.12em] text-stone-500">${escapeHtml(album.event_date||'Tanggal belum diatur')}</p><h3 class="serif mt-2 text-xl leading-snug">${escapeHtml(album.title)}</h3></div><span class="price-badge shrink-0 rounded-full px-2.5 py-1 text-[.58rem] tracking-wider">${priceType}</span></div>
-          <div class="mt-4 flex items-center justify-between gap-3"><p class="text-sm font-semibold text-gold">${money(price)}<span class="ml-1 text-[.65rem] font-normal text-stone-500">${album.price_type==='package'?'paket':'/ foto'}</span></p><button class="btn-secondary !px-4 !py-2 text-xs" type="button" data-buy="${escapeHtml(album.id)}">Lihat Foto</button></div></div>
-        </article>`;
-      }).join('');
-      $('#galleryGrid').querySelectorAll('.preview-image').forEach(img=>img.addEventListener('error',()=>img.remove(),{once:true}));
-    }
-
-    function renderPhotoGallery() {
-      const album=state.selectedAlbum;
-      const photos=state.albumPhotos;
-      const grid=$('#albumPhotosGrid');
-      if(!photos.length){grid.innerHTML='';return;}
-      const packageMode=album.price_type==='package';
-      grid.innerHTML=photos.map(photo=>{
-        const selected=state.selectedPhotoIds.has(photo.id);
-        const preview=safeHttps(photo.preview_url||'');
-        return `<button class="photo-tile ${selected?'selected':''}" type="button" data-photo-toggle="${escapeHtml(photo.id)}" aria-pressed="${selected}" ${packageMode?'disabled':''}>
-          <div class="photo-preview-frame" data-preview="true"><div class="photo-loading">${preview?'Memuat preview…':'Preview tidak tersedia'}</div>${preview?`<img class="photo-image pointer-events-none select-none no-select" src="${escapeHtml(preview)}" alt="Preview foto ${escapeHtml(photo.name)}" draggable="false" loading="lazy">`:''}<div class="photo-watermark no-select" aria-hidden="true"><span>IMAGINEWORKS STUDIO</span><span>IMAGINEWORKS STUDIO</span><span>IMAGINEWORKS STUDIO</span><span>IMAGINEWORKS STUDIO</span></div></div>
-          <div class="flex min-h-14 items-center justify-between gap-2 p-3"><span class="break-all text-xs leading-5 text-stone-300">${escapeHtml(photo.name)}</span><span data-photo-selected class="shrink-0 text-[.65rem] font-semibold ${selected?'text-gold':'text-stone-500'}">${selected?'✓ Dipilih':'Pilih'}</span></div>
-        </button>`;
-      }).join('');
-      grid.querySelectorAll('.photo-image').forEach(img=>{
-        img.addEventListener('load',()=>img.parentElement.querySelector('.photo-loading')?.remove(),{once:true});
-        img.addEventListener('error',()=>{const loader=img.parentElement.querySelector('.photo-loading');if(loader)loader.textContent='Preview gagal dimuat';img.remove();},{once:true});
-      });
-    }
-    function updateAlbumSelection() {
-      const album=state.selectedAlbum;
-      if(!album)return;
-      const count=state.selectedPhotoIds.size;
-      const total=album.price_type==='package'?Number(album.package_price):Number(album.price_per_photo)*count;
-      $('#albumSelectionCount').textContent=album.price_type==='package'?`${count} foto termasuk dalam paket`:`${count} foto dipilih`;
-      $('#albumSelectionTotal').textContent=money(total);
-      $('#continueToCheckout').disabled=count===0;
-      $('#continueToCheckout').innerHTML=album.price_type==='package'?'Lanjut dengan paket all-in <span aria-hidden="true">↗</span>':`Lanjut dengan ${count} foto <span aria-hidden="true">↗</span>`;
-      $$('[data-photo-toggle]',$('#albumPhotosGrid')).forEach(button=>{
-        const selected=state.selectedPhotoIds.has(button.dataset.photoToggle);
-        button.classList.toggle('selected',selected);
-        button.setAttribute('aria-pressed',String(selected));
-        const label=button.querySelector('[data-photo-selected]');
-        if(label){label.textContent=selected?'✓ Dipilih':'Pilih';label.classList.toggle('text-gold',selected);label.classList.toggle('text-stone-500',!selected);}
-      });
-    }
-    function togglePhoto(photoId) {
-      if(state.selectedAlbum?.price_type==='package')return;
-      if(state.selectedPhotoIds.has(photoId))state.selectedPhotoIds.delete(photoId);
-      else if(state.selectedPhotoIds.size<100)state.selectedPhotoIds.add(photoId);
-      else {toast('Maksimal 100 foto per order.');return;}
-      updateAlbumSelection();
-    }
-    async function openAlbumGallery(id) {
-      const album=state.albums.find(item=>String(item.id)===String(id));
-      if(!album)return;
-      state.galleryRequestId++;
-      const requestId=state.galleryRequestId;
-      state.selectedAlbum=album;
-      state.albumPhotos=[];
-      state.selectedPhotoIds=new Set();
-      $('#albumGalleryTitle').textContent=album.title;
-      $('#albumGalleryMeta').textContent=`${album.event_date||'Tanggal belum diatur'} · ${CATEGORY_LABELS[album.category]||'Sesi Studio'} · ${album.price_type==='package'?`Paket ${money(album.package_price)}`:`${money(album.price_per_photo)} per foto`}`;
-      $('#albumGalleryMessage').textContent='Memuat daftar foto…';
-      $('#albumGalleryMessage').classList.remove('hidden');
-      $('#albumPhotosGrid').innerHTML='';
-      updateAlbumSelection();
-      showModal('albumGalleryModal');
-      if(!state.supabase||String(album.id).startsWith('demo-')){
-        $('#albumGalleryMessage').textContent='Hubungkan Supabase dan unggah foto dari Control Panel admin untuk menampilkan album.';
-        return;
-      }
-      try{
-        const {data,error}=await invokeFunction('photo-gallery',{album_id:album.id});
-        if(error)throw new Error(error.message||'Daftar foto belum dapat dibaca.');
-        if(requestId!==state.galleryRequestId)return;
-        if(!data?.ok||!Array.isArray(data.photos))throw new Error(data?.error||'Respons galeri tidak valid.');
-        state.albumPhotos=data.photos;
-        if(!state.albumPhotos.length){$('#albumGalleryMessage').textContent='Album ini belum memiliki foto. Admin dapat mengunggah foto dari Control Panel.';return;}
-        if(album.price_type==='package')state.selectedPhotoIds=new Set(state.albumPhotos.map(photo=>photo.id));
-        $('#albumGalleryMessage').classList.add('hidden');
-        renderPhotoGallery();
-        updateAlbumSelection();
-      }catch(error){
-        if(requestId===state.galleryRequestId)$('#albumGalleryMessage').textContent=error.message||'Galeri belum dapat dimuat. Periksa konfigurasi Supabase Storage.';
-      }
-    }
-
-    function renderUploadAlbumSelect(preferredId='') {
-      const select=$('#uploadAlbumSelect');
-      if(!select)return;
-      const current=preferredId||select.value;
-      const albums=state.albums.filter(album=>!String(album.id).startsWith('demo-'));
-      select.innerHTML='<option value="">Pilih album…</option>'+albums.map(album=>`<option value="${escapeHtml(album.id)}">${escapeHtml(album.title)} · ${escapeHtml(album.event_date||'')}</option>`).join('');
-      if(albums.some(album=>String(album.id)===String(current)))select.value=String(current);
-    }
-
-    function renderAdminAlbumSelect(preferredId='') {
-      const select=$('#manageAlbumSelect');
-      if(!select)return;
-      const current=preferredId||select.value;
-      const albums=state.adminAlbums.filter(album=>!String(album.id).startsWith('demo-'));
-      select.innerHTML='<option value="">Pilih album…</option>'+albums.map(album=>`<option value="${escapeHtml(album.id)}">${escapeHtml(album.published?'':'[ARSIP] ')}${escapeHtml(album.title)} · ${escapeHtml(album.event_date||'')}</option>`).join('');
-      if(albums.some(album=>String(album.id)===String(current)))select.value=String(current);
-      updateDeletePhotoSelection();
-    }
-
-    async function loadAdminAlbums(preferredId='') {
-      if(!state.admin||!state.supabase)return;
-      const select=$('#manageAlbumSelect');
-      if(select&&!state.adminAlbums.length)select.innerHTML='<option value="">Memuat album…</option>';
-      try {
-        const {data,error}=await invokeFunction('manage-album-content',{action:'list_albums'});
-        if(error)throw new Error(error.message||'Daftar album admin belum dapat dimuat.');
-        if(!data?.ok||!Array.isArray(data.albums))throw new Error(data?.error||'Respons daftar album tidak valid.');
-        state.adminAlbums=data.albums;
-        renderAdminAlbumSelect(preferredId);
-        return true;
-      } catch(error) {
-        state.adminAlbums=[];
-        renderAdminAlbumSelect('');
-        $('#managePhotoMessage').textContent=error.message||'Daftar album admin belum dapat dimuat.';
-        return false;
-      }
-    }
-
-    function updateCleanupNotice(cleanup) {
-      const notice=$('#storageCleanupNotice');
-      const message=$('#storageCleanupMessage');
-      if(!notice||!message)return;
-      if(cleanup&&cleanup.pending===0) { notice.classList.add('hidden'); return; }
-      notice.classList.remove('hidden');
-      message.textContent=cleanup&&Number.isInteger(cleanup.pending)
-        ?`${cleanup.pending} file Storage masih menunggu pembersihan. Antrian tersimpan; Anda dapat mencoba ulang.`
-        :'Status queue Storage belum dapat diperiksa. Coba lagi setelah koneksi pulih.';
-    }
-
-    async function retryStorageCleanup(quiet=false) {
-      if(!state.admin)return;
-      const button=$('#retryStorageCleanupButton');
-      button.disabled=true;
-      button.textContent='Mencoba…';
-      try {
-        const {data,error}=await invokeFunction('manage-album-content',{action:'retry_cleanup'});
-        if(error)throw new Error(error.message||'Pembersihan Storage belum berhasil.');
-        if(!data?.ok)throw new Error(data?.error||'Pembersihan Storage belum berhasil.');
-        updateCleanupNotice(data.cleanup);
-        if(!quiet)toast(data.cleanup?.pending===0?'Queue Storage sudah bersih.':`${data.cleanup?.pending??'Sebagian'} file masih menunggu; coba ulang nanti.`);
-      } catch(error) {
-        updateCleanupNotice({pending:null});
-        if(!quiet)toast(error.message||'Pembersihan Storage gagal.');
-      } finally {
-        button.disabled=false;
-        button.textContent='Coba bersihkan lagi';
-      }
-    }
-
-    async function loadAlbums() {
-      const note=$('#connectionNote');
-      if (!state.supabase) { state.albums=DEMO_ALBUMS; note.textContent='Mode pratinjau — hubungkan Supabase untuk memuat album studio.'; note.classList.add('text-gold/80'); renderGallery(); renderUploadAlbumSelect(); return; }
-      try {
-        const {data,error}=await state.supabase.from('albums').select('id,title,event_date,category,price_type,price_per_photo,package_price,cover_url').eq('published',true).order('event_date',{ascending:false});
-        if(error) throw error;
-        state.albums=data||[];
-        note.textContent=state.albums.length?`${state.albums.length} album studio tersedia`:'Galeri terhubung — album baru akan tampil di sini.';
-        renderGallery(); renderUploadAlbumSelect();
-      } catch(error) {
-        console.error('Loading albums failed',error);
-        state.albums=DEMO_ALBUMS; note.textContent='Galeri Supabase belum siap. Menampilkan contoh; checkout nonaktif sampai backend dikonfigurasi.'; note.classList.add('text-amber-300'); renderGallery(); renderUploadAlbumSelect();
-      }
-    }
-
-    function openCheckout(id) {
-      const album=state.albums.find(a=>String(a.id)===String(id)); if(!album)return;
-      if(!state.selectedPhotoIds.size){toast('Pilih minimal satu foto dari galeri album.');return;}
-      state.selectedAlbum=album; state.quantity=album.price_type==='package'?1:state.selectedPhotoIds.size;
-      $('#checkoutAlbumTitle').textContent=album.title;
-      const paymentMode=String(CONFIG.PAYMENT_MODE||'manual');
-      const manualMode=paymentMode==='manual';
-      const midtransMode=paymentMode==='midtrans';
-      const bank=CONFIG.BANK_TRANSFER||{};
-      const bankDetails=[bank.BANK_NAME,bank.ACCOUNT_NUMBER,bank.ACCOUNT_HOLDER].map(value=>String(value||'').trim());
-      const bankReady=bankDetails.every(value=>value&&!/^(ISI_|YOUR_)/i.test(value));
-      const isPackage=album.price_type==='package';
-      $('#quantityPanel').classList.toggle('hidden',isPackage);
-      $('#packagePanel').classList.toggle('hidden',!isPackage);
-      $('#manualBuyerFields').classList.toggle('hidden',!manualMode);
-      $('#manualBuyerName').value=''; $('#manualBuyerContact').value='';
-      $('#unitPrice').textContent=`${money(album.price_per_photo)} per foto`;
-      $('#qtyValue').textContent=String(state.selectedPhotoIds.size);
-      $('#checkoutPhotoNames').textContent=state.albumPhotos.filter(photo=>state.selectedPhotoIds.has(photo.id)).map(photo=>photo.name).join(' · ');
-      $('#checkoutBeforePayment').classList.remove('hidden');
-      $('#manualPaymentPanel').classList.add('hidden');
-      $('#paymentQrPanel').classList.add('hidden');
-      $('#manualSetupWarning').classList.toggle('hidden',!manualMode||bankReady);
-      $('#createPaymentButton').disabled=!manualMode&&!midtransMode;
-      $('#createPaymentButton').innerHTML=manualMode?'Lanjut ke Transfer Manual <span aria-hidden="true">↗</span>':midtransMode?'Buat QRIS Pembayaran <span aria-hidden="true">↗</span>':'Metode pembayaran tidak tersedia';
-      $('#checkoutMessage').textContent=manualMode||midtransMode?'':'Mode pembayaran tidak dikenal. Checkout dinonaktifkan sampai konfigurasi diperbaiki.';
-      $('#qrCanvas').innerHTML='';
-      updateTotal();
-      showModal('checkoutModal');
-    }
-    function updateTotal() {
-      if(!state.selectedAlbum)return;
-      const a=state.selectedAlbum;
-      state.quantity=a.price_type==='package'?1:state.selectedPhotoIds.size;
-      const total=a.price_type==='package'?Number(a.package_price):Number(a.price_per_photo)*state.quantity;
-      $('#checkoutTotal').textContent=money(total);
-      $('#qtyValue').textContent=String(state.quantity);
-    }
-    function getSavedOrder() { try { const raw=sessionStorage.getItem('iw_current_order'); return raw?JSON.parse(raw):null; } catch { return null; } }
-    function saveOrder(order) { state.currentOrder=order; try { sessionStorage.setItem('iw_current_order',JSON.stringify(order)); } catch {} }
-
-    async function createPayment() {
-      const paymentMode=String(CONFIG.PAYMENT_MODE||'manual');
-      if(paymentMode==='manual') return createManualOrder();
-      if(paymentMode==='midtrans') return createMidtransPayment();
-      $('#checkoutMessage').textContent='Mode pembayaran tidak dikenal. Checkout dinonaktifkan sampai konfigurasi diperbaiki.';
-    }
-    async function createManualOrder() {
-      if(!state.supabase||!state.selectedAlbum||String(state.selectedAlbum.id).startsWith('demo-')) { $('#checkoutMessage').textContent='Mode pratinjau: hubungkan Supabase dan tambahkan album studio sebelum membuat order.'; return; }
-      const bank=CONFIG.BANK_TRANSFER||{};
-      const bankName=String(bank.BANK_NAME||'').trim(), accountNumber=String(bank.ACCOUNT_NUMBER||'').trim(), accountHolder=String(bank.ACCOUNT_HOLDER||'').trim();
-      if(!bankName||!accountNumber||!accountHolder||[bankName,accountNumber,accountHolder].some(value=>/^(ISI_|YOUR_)/i.test(value))) { $('#manualSetupWarning').classList.remove('hidden'); $('#checkoutMessage').textContent='Detail rekening belum diatur. Isi BANK_TRANSFER di env.js sebelum membuat order.'; return; }
-      const photoIds=[...state.selectedPhotoIds];
-      if(!photoIds.length){$('#checkoutMessage').textContent='Pilih minimal satu foto dari galeri sebelum checkout.';return;}
-      const customerName=$('#manualBuyerName').value.trim();
-      const customerContact=$('#manualBuyerContact').value.trim();
-      const normalizedContact=customerContact.replace(/\D/g,'');
-      if(!customerName||customerName.length>80||normalizedContact.length<8||normalizedContact.length>15) { $('#checkoutMessage').textContent='Isi nama dan nomor WhatsApp yang valid (8–15 digit).'; return; }
-      const button=$('#createPaymentButton'); button.disabled=true; button.textContent='Membuat order…'; $('#checkoutMessage').textContent='';
-      try {
-        const {data,error}=await invokeFunction('create-manual-order',{album_id:state.selectedAlbum.id,photo_ids:photoIds,customer_name:customerName,customer_contact:normalizedContact});
-        if(error) throw new Error(error.message||'Order manual belum dapat dibuat.');
-        if(!data||!data.ok||!data.order_id||!data.access_token) throw new Error(data?.error||'Backend belum mengembalikan kode order.');
-        const order={order_id:data.order_id,access_token:data.access_token,amount:data.amount,album_title:state.selectedAlbum.title,payment_method:'manual',photo_count:data.photo_count,selected_photo_names:data.selected_photo_names};
-        saveOrder(order);
-        $('#checkoutBeforePayment').classList.add('hidden');
-        $('#manualPaymentPanel').classList.remove('hidden');
-        $('#bankNameText').textContent=bankName;
-        $('#accountNumberText').textContent=accountNumber;
-        $('#accountHolderText').textContent=`a.n. ${accountHolder}`;
-        $('#transferAmountText').textContent=money(data.amount);
-        $('#manualOrderText').textContent=`ID pesanan: ${data.order_id} · ${state.selectedAlbum.title} · ${data.photo_count} foto dipilih`;
-        $('#manualPaymentInstructions').textContent=String(CONFIG.MANUAL_PAYMENT_NOTE||'Simpan ID pesanan ini dan transfer sesuai nominal di atas. Setelah transfer, kirim bukti kepada studio. PIN diterbitkan setelah admin memeriksa pembayaran.').trim();
-        $('#manualPaymentStatus').textContent='Menunggu transfer dan konfirmasi admin.';
-        const studioNumber=String(CONFIG.BOOKING_WHATSAPP||'').replace(/\D/g,'');
-        const whatsapp=$('#manualWhatsAppLink');
-        if(studioNumber) { const message=`Halo ImagineWorks Studio, saya ${customerName}. Saya sudah transfer untuk pesanan ${data.order_id} sebesar ${money(data.amount)} dan akan mengirim bukti transfer.`; whatsapp.href=`https://wa.me/${studioNumber}?text=${encodeURIComponent(message)}`; whatsapp.classList.remove('hidden'); }
-        else whatsapp.classList.add('hidden');
-        pollPayment();
-      } catch(error) { $('#checkoutMessage').textContent=error.message||'Order belum dapat dibuat.'; }
-      finally { button.disabled=false; button.innerHTML='Lanjut ke Transfer Manual <span aria-hidden="true">↗</span>'; }
-    }
-    async function createMidtransPayment() {
-      if(!state.supabase||!state.selectedAlbum||String(state.selectedAlbum.id).startsWith('demo-')) { $('#checkoutMessage').textContent='Mode demo: isi konfigurasi Supabase dan deploy Edge Functions sebelum membuat transaksi nyata.'; return; }
-      const button=$('#createPaymentButton'); button.disabled=true; button.textContent='Menyiapkan QRIS…'; $('#checkoutMessage').textContent='';
-      try {
-        const {data,error}=await invokeFunction('create-payment',{album_id:state.selectedAlbum.id,quantity:state.selectedAlbum.price_type==='package'?1:state.quantity});
-        if(error) throw new Error(error.message||'Fungsi pembayaran belum tersedia.');
-        if(!data||!data.ok||!data.order_id||!data.access_token||!data.qr_string) throw new Error(data?.error||'Backend belum mengembalikan data QRIS yang lengkap.');
-        const order={order_id:data.order_id,access_token:data.access_token,amount:data.amount,expires_at:data.expires_at,album_title:state.selectedAlbum.title};
-        saveOrder(order);
-        $('#checkoutBeforePayment').classList.add('hidden'); $('#paymentQrPanel').classList.remove('hidden');
-        $('#paymentOrderText').textContent=`ID pesanan: ${data.order_id} · ${money(data.amount)}`;
-        if(window.QRCode) new QRCode($('#qrCanvas'),{text:data.qr_string,width:204,height:204,colorDark:'#111111',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
-        else { const fallback=document.createElement('p');fallback.className='max-w-[205px] break-all text-[.62rem] text-black';fallback.textContent=data.qr_string;$('#qrCanvas').appendChild(fallback); }
-        pollPayment();
-      } catch(error) { $('#checkoutMessage').textContent=error.message||'Pembayaran belum dapat dibuat.'; }
-      finally { button.disabled=false; button.innerHTML='Buat QRIS Pembayaran <span aria-hidden="true">↗</span>'; }
-    }
-
-    async function checkPayment(order=getSavedOrder(),fromPoll=false) {
-      if(!state.supabase||!order?.order_id||!order?.access_token)return null;
-      try {
-        const {data,error}=await invokeFunction('payment-status',{order_id:order.order_id,access_token:order.access_token});
-        if(error) throw error;
-        if(!data?.ok) throw new Error(data?.error||'Status pesanan belum dapat dibaca.');
-        state.currentOrder=order;
-        if(order.payment_method==='manual'&&data.status==='pending') $('#manualPaymentStatus').textContent='Menunggu admin mencocokkan transfer.';
-        if(data.status==='paid'&&data.pin) {
-          state.polling=false; clearTimeout(state.pollTimer);
-          $('#paymentStatusText').textContent='Pembayaran terkonfirmasi.';
-          $('#manualPaymentStatus').textContent='Pembayaran dikonfirmasi. PIN diterbitkan.';
-          $('#successPin').textContent=data.pin;
-          $('#pinExpiry').textContent=new Intl.DateTimeFormat('id-ID',{dateStyle:'long'}).format(new Date(data.expires_at));
-          closeModal('checkoutModal'); showModal('successModal');
-          $('#orderStatusBox').classList.remove('hidden');
-          $('#orderStatusBox').innerHTML=`<div class="flex flex-wrap items-center justify-between gap-3"><div><p class="text-xs text-stone-500">${escapeHtml(order.order_id)}</p><p class="mt-1 font-semibold text-emerald-300">Pembayaran lunas</p><p class="mt-1 text-xs text-stone-400">${money(data.amount||order.amount)} · PIN akses sudah diterbitkan</p></div><a href="#photos" class="btn-secondary !px-4 !py-2 text-xs">Masukkan PIN</a></div>`;
-          return data;
-        }
-        if(data.status==='expired'||data.status==='failed') { $('#paymentStatusText').textContent=statusLabel(data.status); $('#manualPaymentStatus').textContent=statusLabel(data.status); state.polling=false; clearTimeout(state.pollTimer); }
-        else if(!fromPoll) toast(`Status: ${statusLabel(data.status)}`);
-        return data;
-      } catch(error) { if(!fromPoll) toast(error.message||'Tidak dapat memeriksa status pesanan.'); return null; }
-    }
-    async function pollPayment() {
-      if(state.polling)return;
-      state.polling=true; let attempts=0;
-      const tick=async()=>{
-        if(!state.polling)return;
-        attempts++;
-        const order=getSavedOrder();
-        const result=await checkPayment(order,true);
-        if(!state.polling)return;
-        if(result?.status==='paid'||result?.status==='expired'||result?.status==='failed') { state.polling=false; return; }
-        if(attempts>=180) { state.polling=false; $('#paymentStatusText').textContent='Pengecekan otomatis berhenti. Anda masih dapat mengecek status pesanan.'; $('#manualPaymentStatus').textContent='Pengecekan otomatis berhenti; tekan “Cek status” setelah admin memverifikasi transfer.'; return; }
-        state.pollTimer=setTimeout(tick,5000);
+      const CONFIG = window.IMAGINEWORKS_CONFIG || {};
+      const CATEGORY_LABELS = {
+        sports_running: 'Sports / Lari',
+        personal: 'Sesi Personal',
+        celebration: 'Acara & Perayaan'
       };
-      state.pollTimer=setTimeout(tick,2500);
-    }
+      const DEMO_EVENTS = [
+        {
+          id: 'demo-run',
+          title: 'City Run · Golden Hour',
+          event_date: '2026-11-02',
+          category: 'sports_running',
+          price_type: 'per_photo',
+          price: 15000,
+          photo_url: 'https://images.unsplash.com/photo-1541534401786-2077eed87a74?auto=format&fit=crop&w=1200&q=80',
+          cover_url: 'https://images.unsplash.com/photo-1541534401786-2077eed87a74?auto=format&fit=crop&w=1200&q=80',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 'demo-portrait',
+          title: 'Portrait Session · Atelier',
+          event_date: '2026-11-08',
+          category: 'personal',
+          price_type: 'per_photo',
+          price: 25000,
+          photo_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80',
+          cover_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 'demo-celebration',
+          title: 'An Evening to Remember',
+          event_date: '2026-11-15',
+          category: 'celebration',
+          price_type: 'package',
+          price: 550000,
+          photo_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
+          cover_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
+          created_at: new Date().toISOString()
+        }
+      ];
 
-    async function lookupPin(pin) {
-      const result=$('#pinResult'); result.classList.remove('hidden'); result.innerHTML='<p class="text-sm text-stone-400">Memeriksa PIN…</p>';
-      if(!state.supabase) { result.innerHTML='<p class="text-sm text-amber-200">Hubungkan Supabase dan deploy fungsi lookup-pin untuk memverifikasi PIN.</p>'; return; }
-      try {
-        const {data,error}=await invokeFunction('lookup-pin',{pin});
-        if(error) throw error;
-        if(!data?.ok) throw new Error(data?.error||'PIN tidak ditemukan atau tidak valid.');
-        if(data.expired) { result.innerHTML=`<p class="font-semibold text-rose-300">PIN sudah kadaluarsa</p><p class="mt-1 text-xs text-stone-400">Masa akses berakhir ${escapeHtml(new Intl.DateTimeFormat('id-ID',{dateStyle:'long'}).format(new Date(data.expires_at)))}.</p>`; return; }
-        const expiresText=escapeHtml(new Intl.DateTimeFormat('id-ID',{dateStyle:'long'}).format(new Date(data.expires_at)));
-        if(data.legacy_drive_url) {
-          const legacyUrl=safeHttps(data.legacy_drive_url);
-          if(!legacyUrl)throw new Error('Tautan foto lama tidak valid. Hubungi studio.');
-          result.innerHTML=`<p class="font-semibold text-emerald-300">PIN aktif · ${Number(data.days_left)||0} hari tersisa</p><p class="mt-1 text-xs text-stone-400">Berlaku sampai ${expiresText}.</p><a class="btn-primary mt-4 w-full" href="${escapeHtml(legacyUrl)}" target="_blank" rel="noopener noreferrer">Buka Foto Lama <span aria-hidden="true">↗</span></a>`;
+      const state = {
+        supabase: null,
+        events: [],
+        selectedEvent: null,
+        quantity: 1,
+        adminMode: false,
+        demoMode: true,
+        activePin: null
+      };
+
+      const $ = (selector, root = document) => root.querySelector(selector);
+      const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
+      const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value) || 0);
+      const safeUrl = value => {
+        if (!value) return '';
+        try {
+          const url = new URL(value);
+          return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
+        } catch {
+          return '';
+        }
+      };
+      const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
+      const setToast = message => {
+        const el = $('#toast');
+        if (!el) return;
+        el.textContent = message;
+        el.classList.add('show');
+        clearTimeout(setToast.timer);
+        setToast.timer = setTimeout(() => el.classList.remove('show'), 2800);
+      };
+      const toggleModal = (modalId, shouldOpen) => {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+        modal.classList.toggle('open', shouldOpen);
+        document.body.classList.toggle('no-scroll', shouldOpen);
+      };
+      const showModal = id => toggleModal(id, true);
+      const closeModal = id => toggleModal(id, false);
+      const setResult = (selector, message, isError = false) => {
+        const el = $(selector);
+        if (!el) return;
+        const hasHtml = /<[^>]+>/.test(message);
+        if (hasHtml) {
+          el.innerHTML = message;
+        } else {
+          el.textContent = message;
+        }
+        el.classList.remove('text-rose-300', 'text-emerald-300', 'text-amber-300', 'text-stone-400');
+        if (isError) el.classList.add('text-rose-300');
+        else if (message.toLowerCase().includes('valid') || message.toLowerCase().includes('berhasil')) el.classList.add('text-emerald-300');
+        else if (message.toLowerCase().includes('kadaluwarsa') || message.toLowerCase().includes('tidak valid')) el.classList.add('text-amber-300');
+        else el.classList.add('text-stone-400');
+      };
+
+      function initSupabase() {
+        const supabaseUrl = String(CONFIG.SUPABASE_URL || '').trim();
+        const supabaseKey = String(CONFIG.SUPABASE_ANON_KEY || '').trim();
+        const ready = supabaseUrl && supabaseKey && supabaseUrl.includes('supabase.co') && supabaseKey.length > 20 && !supabaseKey.includes('YOUR_') && !supabaseKey.includes('ISI_');
+        if (!ready) {
+          state.demoMode = true;
+          state.events = structuredClone(DEMO_EVENTS);
           return;
         }
-        const photos=Array.isArray(data.photos)?data.photos:[];
-        if(!photos.length)throw new Error('Tidak ada foto unduhan untuk PIN ini. Hubungi studio.');
-        const photoLinks=photos.map(photo=>{const url=safeHttps(photo.url);if(!url)throw new Error('Tautan unduhan foto tidak valid. Hubungi studio.');return `<div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3"><span class="min-w-0 flex-1 break-words text-xs text-stone-300">${escapeHtml(photo.name||'Foto')}</span><a class="btn-primary !px-4 !py-2 text-xs" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">Unduh <span aria-hidden="true">↗</span></a></div>`;}).join('');
-        result.innerHTML=`<p class="font-semibold text-emerald-300">PIN aktif · ${Number(data.days_left)||0} hari tersisa</p><p class="mt-1 text-xs text-stone-400">Berlaku sampai ${expiresText}. Tautan unduh sementara berlaku sekitar satu jam; masukkan PIN lagi untuk membuat tautan baru.</p><div class="mt-4 space-y-2">${photoLinks}</div>`;
-      } catch(error) { result.innerHTML=`<p class="text-sm text-rose-300">${escapeHtml(error.message||'PIN tidak dapat diverifikasi.')}</p>`; }
-    }
-
-    async function loadManualOrders() {
-      const list=$('#manualOrdersList');
-      if(!state.supabase||!state.admin) { list.textContent='Login admin untuk memuat order.'; return; }
-      list.innerHTML='<p class="text-sm text-stone-500">Memuat order manual…</p>';
-      try {
-        const {data,error}=await invokeFunction('manage-manual-orders',{action:'list'});
-        if(error) throw new Error(error.message||'Daftar order belum dapat dimuat.');
-        if(!data?.ok||!Array.isArray(data.orders)) throw new Error(data?.error||'Respons daftar order tidak valid.');
-        if(!data.orders.length) { list.innerHTML='<p class="text-sm text-stone-500">Tidak ada order manual yang menunggu konfirmasi.</p>'; return; }
-        list.innerHTML=data.orders.map(order=>{
-          const photoNames=Array.isArray(order.selected_photo_names)?order.selected_photo_names:[];
-          const photos=photoNames.join(' · '),photoCount=photoNames.length||Number(order.quantity)||1;
-          const orderId=escapeHtml(order.order_id);
-          return `<article class="rounded-xl border border-white/10 bg-[#141413] p-4"><div class="flex flex-wrap items-start justify-between gap-3"><div><p class="break-all text-xs font-semibold text-gold">${orderId}</p><h4 class="serif mt-1 text-lg">${escapeHtml(order.album_title||'Album')}</h4><p class="mt-1 text-xs text-stone-400">${escapeHtml(order.customer_name||'')} · ${escapeHtml(order.customer_contact||'')}</p><p class="mt-1 text-xs text-stone-500">${photoCount} foto · ${escapeHtml(new Intl.DateTimeFormat('id-ID',{dateStyle:'medium',timeStyle:'short'}).format(new Date(order.created_at)))}</p><p class="mt-2 break-words text-xs leading-5 text-stone-400">Foto dipilih: ${escapeHtml(photos||'Data pilihan tidak tersedia')}</p></div><strong class="text-sm text-gold">${money(order.gross_amount)}</strong></div><div class="mt-4 flex flex-wrap gap-2"><button class="btn-primary !px-4 !py-2 text-xs" type="button" data-confirm-manual="${orderId}">Konfirmasi setelah cek transfer</button><button class="btn-secondary !border-rose-300/25 !text-rose-200 !px-4 !py-2 text-xs" type="button" data-cancel-manual="${orderId}">Batalkan (transfer belum diterima)</button></div></article>`;
-        }).join('');
-      } catch(error) { list.innerHTML=`<p class="text-sm text-rose-300">${escapeHtml(error.message||'Order belum dapat dimuat.')}</p>`; }
-    }
-    async function confirmManualOrder(orderId) {
-      if(!state.admin||!window.confirm(`Pastikan transfer untuk ${orderId} sudah cocok di luar situs. Konfirmasi ini akan menerbitkan PIN. Lanjutkan?`)) return;
-      try {
-        const {data,error}=await invokeFunction('manage-manual-orders',{action:'confirm',order_id:orderId});
-        if(error) throw new Error(error.message||'Konfirmasi belum berhasil.');
-        if(!data?.ok) throw new Error(data?.error||'Order belum dapat dikonfirmasi.');
-        toast(data.already_paid?'Order ini sudah lunas.':'Order lunas; PIN tersedia bagi pemesan.');
-        await loadManualOrders();
-      } catch(error) { toast(error.message||'Konfirmasi order gagal.'); }
-    }
-    async function cancelManualOrder(orderId) {
-      if(!state.admin||!window.confirm(`Batalkan order ${orderId}? Lanjutkan hanya jika Anda sudah memastikan transfer belum diterima. Order batal tidak bisa memperoleh PIN.`))return;
-      try {
-        const {data,error}=await invokeFunction('manage-manual-orders',{action:'cancel',order_id:orderId});
-        if(error)throw new Error(error.message||'Order belum dapat dibatalkan.');
-        if(!data?.ok)throw new Error(data?.error||'Order belum dapat dibatalkan.');
-        toast('Order dibatalkan. Foto pilihan tidak lagi tertahan oleh order ini.');
-        await loadManualOrders();
-      } catch(error) { toast(error.message||'Pembatalan order gagal.'); }
-    }
-    async function handleAdminLogin(event) {
-      event.preventDefault();
-      if(!state.supabase) { setMessage('#adminLoginMessage','Konfigurasi Supabase belum diisi.',true); return; }
-      setMessage('#adminLoginMessage','Memeriksa kredensial…');
-      const {data,error}=await state.supabase.auth.signInWithPassword({email:$('#adminEmail').value.trim(),password:$('#adminPassword').value});
-      if(error) { setMessage('#adminLoginMessage',error.message,true); return; }
-      if(data.user?.app_metadata?.role!=='admin') { await state.supabase.auth.signOut(); setMessage('#adminLoginMessage','Akun ini tidak memiliki role admin.',true); return; }
-      state.admin=true; $('#adminLoginWrap').classList.add('hidden'); $('#adminContent').classList.add('open'); setMessage('#adminLoginMessage',''); toast('Admin berhasil masuk.'); await loadManualOrders(); await loadAdminAlbums(); await retryStorageCleanup(true); await loadAdminPhotos();
-    }
-    function revealAdmin() { $('#adminPanel').classList.remove('hidden'); $('#adminPanel').scrollIntoView({behavior:'smooth'}); }
-    async function submitAlbum(event) {
-      event.preventDefault(); if(!state.supabase||!state.admin) { setMessage('#adminAlbumMessage','Login admin diperlukan.',true); return; }
-      const type=$('#adminPriceType').value, value=Number($('#adminPrice').value);
-      const args={p_title:$('#adminTitle').value.trim(),p_event_date:$('#adminEventDate').value,p_category:$('#adminCategory').value,p_price_type:type,p_price:value,p_drive_url:null,p_cover_url:$('#adminCoverUrl').value.trim()||null};
-      setMessage('#adminAlbumMessage','Menyimpan album…');
-      const {data:albumId,error}=await state.supabase.rpc('admin_create_album',args);
-      if(error) { setMessage('#adminAlbumMessage',error.message||'Gagal menyimpan album.',true); return; }
-      $('#adminAlbumForm').reset(); setMessage('#adminAlbumMessage','Album berhasil ditambahkan. Pilih album itu di panel upload untuk menambahkan foto.'); await loadAlbums(); renderUploadAlbumSelect(albumId); await loadAdminAlbums(albumId); $('#manageAlbumSelect').value=albumId; await loadAdminPhotos();
-    }
-
-    const MAX_IMAGE_BYTES=50*1024*1024;
-    const MAX_PREVIEW_BYTES=5*1024*1024;
-    async function createPreviewBlob(file) {
-      const bitmap=await createImageBitmap(file);
-      const maxEdge=1600,scale=Math.min(1,maxEdge/Math.max(bitmap.width,bitmap.height));
-      const canvas=document.createElement('canvas'); canvas.width=Math.max(1,Math.round(bitmap.width*scale)); canvas.height=Math.max(1,Math.round(bitmap.height*scale));
-      const context=canvas.getContext('2d'); if(!context){bitmap.close();throw new Error('Browser tidak dapat membuat preview.');}
-      context.drawImage(bitmap,0,0,canvas.width,canvas.height); bitmap.close();
-      for(const quality of [.82,.68,.54]) {
-        const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality));
-        if(blob&&blob.size<=MAX_PREVIEW_BYTES)return blob;
-      }
-      throw new Error('Preview lebih besar dari 5 MB. Coba foto lain atau ekspor foto dengan resolusi lebih kecil.');
-    }
-    function tusEndpoint() {
-      const base=new URL(CONFIG.SUPABASE_URL);
-      if(base.hostname.endsWith('.supabase.co')&&!base.hostname.endsWith('.storage.supabase.co')) {
-        const ref=base.hostname.slice(0,-'.supabase.co'.length);
-        return `${base.protocol}//${ref}.storage.supabase.co/storage/v1/upload/resumable`;
-      }
-      return `${base.origin}/storage/v1/upload/resumable`;
-    }
-    function uploadResumable(blob,bucket,path,accessToken,onProgress) {
-      if(!window.tus?.Upload)throw new Error('Klien upload resumable tidak tersedia. Muat ulang halaman dan coba lagi.');
-      return new Promise((resolve,reject)=>{
-        const upload=new window.tus.Upload(blob,{
-          endpoint:tusEndpoint(),chunkSize:6*1024*1024,retryDelays:[0,1000,3000,5000,10000],removeFingerprintOnSuccess:true,
-          headers:{apikey:String(CONFIG.SUPABASE_ANON_KEY||''),Authorization:`Bearer ${accessToken}`},
-          metadata:{bucketName:bucket,objectName:path,contentType:blob.type,cacheControl:'3600'},
-          onError:reject,onProgress:(uploaded,total)=>onProgress(total?uploaded/total:0),onSuccess:resolve
+        state.demoMode = false;
+        state.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
+          auth: { persistSession: true, autoRefreshToken: true }
         });
-        upload.start();
-      });
-    }
-    async function uploadAdminPhotos() {
-      const button=$('#uploadPhotosButton'),progress=$('#adminUploadProgress'),fileInput=$('#adminPhotoFiles'),albumId=$('#uploadAlbumSelect').value,files=[...fileInput.files];
-      if(!state.supabase||!state.admin){progress.textContent='Login admin diperlukan untuk upload.';return;}
-      if(!albumId){progress.textContent='Pilih album terlebih dahulu.';return;}
-      if(!files.length){progress.textContent='Pilih minimal satu file foto.';return;}
-      if(files.length>40){progress.textContent='Maksimum 40 foto per batch upload.';return;}
-      const invalidFile=files.find(file=>!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size<1||file.size>MAX_IMAGE_BYTES);
-      if(invalidFile){progress.textContent=`${invalidFile.name}: pilih JPEG, PNG, atau WebP berukuran maksimum 50 MB.`;return;}
-      const {data:authData}=await state.supabase.auth.getSession();
-      const session=authData?.session;
-      if(!session||session.user?.app_metadata?.role!=='admin'){progress.textContent='Sesi admin tidak valid. Login kembali.';return;}
-      const {count:existingPhotoCount,error:countError}=await state.supabase.from('album_photos').select('id',{count:'exact',head:true}).eq('album_id',albumId);
-      if(countError){progress.textContent=countError.message||'Jumlah foto album belum dapat diperiksa.';return;}
-      if((existingPhotoCount||0)+files.length>1000){progress.textContent='Maksimum 1.000 foto per album. Buat album tambahan untuk foto selebihnya.';return;}
-      button.disabled=true; $('#uploadedPhotoList').replaceChildren();
-      try {
-        for(let index=0;index<files.length;index++) {
-          const file=files[index];
-          if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error(`${file.name}: hanya JPEG, PNG, atau WebP yang diterima.`);
-          if(file.size<1||file.size>MAX_IMAGE_BYTES)throw new Error(`${file.name}: ukuran maksimum 50 MB per foto.`);
-          progress.textContent=`Menyiapkan preview ${index+1}/${files.length}: ${file.name}`;
-          const previewBlob=await createPreviewBlob(file),photoId=crypto.randomUUID();
-          const extension=file.type==='image/png'?'png':file.type==='image/webp'?'webp':'jpg';
-          const originalPath=`${albumId}/${photoId}.${extension}`,previewPath=`${albumId}/${photoId}.jpg`;
-          let originalUploaded=false,previewUploaded=false,recordCreated=false;
-          try {
-            await uploadResumable(file,'album-originals',originalPath,session.access_token,fraction=>{progress.textContent=`Upload foto ${index+1}/${files.length}: ${Math.round(((index+fraction)/files.length)*100)}%`;});
-            originalUploaded=true;
-            await uploadResumable(previewBlob,'album-previews',previewPath,session.access_token,fraction=>{progress.textContent=`Upload preview ${index+1}/${files.length}: ${Math.round(((index+fraction)/files.length)*100)}%`;});
-            previewUploaded=true;
-            const {data:coverData,error:registerError}=await state.supabase.rpc('admin_register_album_photo',{
-              p_album_id:albumId,p_photo_id:photoId,p_file_name:file.name.slice(0,255),p_mime_type:file.type,
-              p_byte_size:file.size,p_preview_path:previewPath,p_original_path:originalPath,p_preview_url:state.supabase.storage.from('album-previews').getPublicUrl(previewPath).data.publicUrl
-            });
-            if(registerError)throw registerError;
-            recordCreated=true;
-            const targetAlbum=state.albums.find(album=>String(album.id)===String(albumId));
-            if(targetAlbum&&coverData?.cover_url)targetAlbum.cover_url=coverData.cover_url;
-            const item=document.createElement('p'); item.textContent=`✓ ${file.name}`; $('#uploadedPhotoList').append(item);
-          } catch(error) {
-            if(!recordCreated) {
-              const {data:existingPhoto,error:lookupError}=await state.supabase.from('album_photos').select('id').eq('id',photoId).maybeSingle();
-              if(!lookupError&&existingPhoto)recordCreated=true;
-              if(!recordCreated) {
-                const objects=[];
-                if(previewUploaded)objects.push({bucket_id:'album-previews',object_path:previewPath});
-                if(originalUploaded)objects.push({bucket_id:'album-originals',object_path:originalPath});
-                if(objects.length) {
-                  const {data:cleanupData,error:cleanupError}=await invokeFunction('manage-album-content',{action:'enqueue_cleanup',album_id:albumId,objects});
-                  const alreadyRegistered=Number(cleanupData?.already_registered)||0;
-                  if(!cleanupError&&cleanupData?.ok&&alreadyRegistered===objects.length)recordCreated=true;
-                  else if(cleanupError||!cleanupData?.ok)throw new Error(`${file.name}: upload gagal dan pencatatan pembersihan Storage belum terkonfirmasi. Coba ulang cleanup dari panel admin.`);
-                }
-              }
-            }
-            if(recordCreated) {
-              const item=document.createElement('p'); item.textContent=`✓ ${file.name} (metadata tersimpan)`; $('#uploadedPhotoList').append(item);
-              continue;
-            }
-            throw new Error(`${file.name}: ${error.message||'upload gagal'}`);
-          }
+      }
+
+      function ensureStorage() {
+        const storageKey = 'imagineworks-events';
+        const storagePinKey = 'imagineworks-purchased-sessions';
+        if (!localStorage.getItem(storageKey)) localStorage.setItem(storageKey, JSON.stringify(DEMO_EVENTS));
+        if (!localStorage.getItem(storagePinKey)) localStorage.setItem(storagePinKey, JSON.stringify([]));
+      }
+
+      function getStoredEvents() {
+        try {
+          const raw = localStorage.getItem('imagineworks-events');
+          return raw ? JSON.parse(raw) : DEMO_EVENTS;
+        } catch {
+          return DEMO_EVENTS;
         }
-        progress.textContent=`Selesai: ${files.length} foto berhasil diunggah.`; fileInput.value=''; await loadAlbums(); renderUploadAlbumSelect(albumId); $('#manageAlbumSelect').value=albumId; await loadAdminPhotos();
-      } catch(error) { progress.textContent=error.message||'Upload foto gagal.'; }
-      finally { button.disabled=false; }
-    }
+      }
 
-    function updateDeletePhotoSelection() {
-      const ids=$$('#managePhotosList [data-admin-delete-photo]:checked').map(input=>input.value);
-      state.selectedDeletePhotoIds=new Set(ids);
-      const albumId=$('#manageAlbumSelect')?.value||'';
-      const album=state.adminAlbums.find(item=>String(item.id)===String(albumId));
-      $('#deletePhotoSelectionCount').textContent=`${ids.length} foto dipilih`;
-      $('#deleteSelectedPhotosButton').disabled=!state.admin||ids.length===0;
-      $('#deleteAlbumButton').disabled=!state.admin||!album||!album.published;
-      $('#restoreArchivedAlbumButton').disabled=!state.admin||!album||album.published;
-      $('#restoreArchivedAlbumButton').classList.toggle('hidden',!state.admin||!album||album.published);
-    }
+      function saveStoredEvents(events) {
+        localStorage.setItem('imagineworks-events', JSON.stringify(events));
+      }
 
-    async function loadAdminPhotos() {
-      const albumId=$('#manageAlbumSelect').value;
-      const message=$('#managePhotoMessage'),list=$('#managePhotosList');
-      state.adminPhotos=[]; state.selectedDeletePhotoIds.clear(); list.replaceChildren(); updateDeletePhotoSelection();
-      if(!state.admin||!state.supabase){message.textContent='Login admin diperlukan untuk mengelola foto.';return;}
-      if(!albumId){message.textContent='Pilih album untuk melihat foto yang dapat dikelola.';return;}
-      message.textContent='Memuat foto album…';
-      try {
-        const {data,error,count}=await state.supabase.from('album_photos')
-          .select('id,file_name,byte_size,preview_path,created_at',{count:'exact'})
-          .eq('album_id',albumId).order('created_at',{ascending:false}).limit(1001);
-        if(error)throw error;
-        if((count||0)>1000){message.textContent='Album melebihi batas 1.000 foto; hapus foto secara bertahap lewat penyimpanan atau bagi album.';return;}
-        state.adminPhotos=data||[];
-        if(!state.adminPhotos.length){message.textContent='Belum ada foto pada album ini.';return;}
-        message.textContent=`${state.adminPhotos.length} foto pada album ini. Pilih checkbox untuk menghapus.`;
-        list.innerHTML=state.adminPhotos.map(photo=>{
-          const preview=state.supabase.storage.from('album-previews').getPublicUrl(photo.preview_path).data.publicUrl;
-          return `<label class="overflow-hidden rounded-xl border border-white/10 bg-[#141413] p-2"><span class="flex items-start gap-2"><input class="mt-1 accent-[#E5C158]" type="checkbox" value="${escapeHtml(photo.id)}" data-admin-delete-photo><span class="min-w-0"><span class="block break-all text-[.68rem] leading-4 text-stone-300">${escapeHtml(photo.file_name)}</span><span class="mt-1 block text-[.6rem] text-stone-600">${(Number(photo.byte_size)/1048576).toFixed(1)} MB · ${escapeHtml(new Intl.DateTimeFormat('id-ID',{dateStyle:'medium'}).format(new Date(photo.created_at)))}</span></span></span><span class="relative mt-2 block overflow-hidden rounded-lg bg-black/30"><img class="h-32 w-full object-cover" src="${escapeHtml(preview)}" alt="Preview ${escapeHtml(photo.file_name)}" loading="lazy"><span class="photo-watermark no-select pointer-events-none" aria-hidden="true"><span>IMAGINEWORKS STUDIO</span><span>IMAGINEWORKS STUDIO</span></span></span></label>`;
+      function getStoredPurchasedSessions() {
+        try {
+          const raw = localStorage.getItem('imagineworks-purchased-sessions');
+          return raw ? JSON.parse(raw) : [];
+        } catch {
+          return [];
+        }
+      }
+
+      function saveStoredPurchasedSessions(list) {
+        localStorage.setItem('imagineworks-purchased-sessions', JSON.stringify(list));
+      }
+
+      async function loadEvents() {
+        ensureStorage();
+        if (state.demoMode) {
+          state.events = getStoredEvents();
+          renderAlbumGrid();
+          renderAdminTable();
+          return;
+        }
+
+        try {
+          const { data, error } = await state.supabase
+            .from('events_album')
+            .select('*')
+            .order('event_date', { ascending: true });
+
+          if (error) throw error;
+          state.events = (data && data.length ? data : getStoredEvents());
+          if (!data || !data.length) saveStoredEvents(state.events);
+          renderAlbumGrid();
+          renderAdminTable();
+        } catch (error) {
+          state.events = getStoredEvents();
+          setToast('Database belum aktif. Menampilkan mode demo lokal.');
+          renderAlbumGrid();
+          renderAdminTable();
+        }
+      }
+
+      function renderAlbumGrid() {
+        const category = $('#galleryCategoryFilter')?.value || 'all';
+        const date = $('#galleryDateFilter')?.value || '';
+        const grid = $('#albumsGrid');
+        if (!grid) return;
+
+        const filtered = state.events.filter(event => {
+          const typeMatch = category === 'all' || event.category === category;
+          const dateMatch = !date || event.event_date === date;
+          return typeMatch && dateMatch;
+        });
+
+        if (!filtered.length) {
+          grid.innerHTML = '<div class="col-span-full rounded-2xl border border-dashed border-white/10 bg-black/25 p-8 text-center text-stone-400">Belum ada event yang cocok dengan filter saat ini.</div>';
+          return;
+        }
+
+        grid.innerHTML = filtered.map(event => {
+          const cover = safeUrl(event.cover_url || event.photo_url) || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
+          const typeLabel = CATEGORY_LABELS[event.category] || 'Acara';
+          const priceText = event.price_type === 'package' ? 'Paket Event' : 'Per Lembar';
+          return `
+            <article class="album-card cursor-pointer" data-event-id="${event.id}">
+              <div class="preview-frame">
+                <div class="cover-tag">${escapeHtml(typeLabel)}</div>
+                <img src="${cover}" alt="${escapeHtml(event.title)}" class="preview-image" loading="lazy" />
+                <div class="watermark">
+                  <span>IMAGINEWORKS</span><span>STUDIO</span><span>IMAGINEWORKS</span>
+                  <span>STUDIO</span><span>IMAGINEWORKS</span><span>STUDIO</span>
+                  <span>IMAGINEWORKS</span><span>STUDIO</span><span>IMAGINEWORKS</span>
+                </div>
+              </div>
+              <div class="p-4">
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-xs uppercase tracking-[.14em] text-stone-500">${escapeHtml(event.event_date)}</p>
+                    <h3 class="mt-2 text-xl font-semibold text-white">${escapeHtml(event.title)}</h3>
+                  </div>
+                  <span class="price-badge inline-flex items-center rounded-full px-2.5 py-1 text-[.6rem] font-bold uppercase tracking-[.08em]">${escapeHtml(priceText)}</span>
+                </div>
+                <div class="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+                  <div>
+                    <p class="text-xs uppercase tracking-[.12em] text-stone-500">Mulai dari</p>
+                    <p class="mt-1 text-lg font-bold text-gold">${money(event.price)}</p>
+                  </div>
+                  <button class="btn-primary purchase-event" data-event-id="${event.id}" type="button">Pilih</button>
+                </div>
+              </div>
+            </article>
+          `;
         }).join('');
-        updateDeletePhotoSelection();
-      } catch(error) {
-        message.textContent=error.message||'Foto admin belum dapat dimuat.';
+
+        $$('[data-event-id]').forEach(el => {
+          el.addEventListener('click', (event) => {
+            const target = event.target.closest('.purchase-event');
+            if (target) {
+              const id = target.dataset.eventId;
+              const selected = state.events.find(item => item.id === id);
+              if (selected) openCheckout(selected);
+              return;
+            }
+            const cardId = el.dataset.eventId;
+            const selected = state.events.find(item => item.id === cardId);
+            if (selected) openCheckout(selected);
+          });
+        });
       }
-    }
 
-    async function deleteSelectedPhotos() {
-      const albumId=$('#manageAlbumSelect').value,photoIds=[...state.selectedDeletePhotoIds];
-      if(!state.admin||!albumId||!photoIds.length)return;
-      const album=state.adminAlbums.find(item=>String(item.id)===String(albumId));
-      const label=album?.title||'album terpilih';
-      if(!window.confirm(`Hapus ${photoIds.length} foto dari “${label}”? Foto yang masih dirujuk order pending atau PIN aktif tidak dapat dihapus. Penghapusan file Storage yang gagal akan tetap tercatat untuk dicoba ulang.`))return;
-      $('#deleteSelectedPhotosButton').disabled=true; $('#managePhotoMessage').textContent='Mengunci pilihan foto, memeriksa akses pembeli, lalu menghapus…';
-      try {
-        const {data,error}=await invokeFunction('manage-album-content',{action:'delete_photos',album_id:albumId,photo_ids:photoIds});
-        if(error)throw error;
-        if(!data?.ok)throw new Error(data?.error||'Foto belum dapat dihapus.');
-        state.selectedDeletePhotoIds.clear();
-        updateCleanupNotice(data.cleanup);
-        toast(data.cleanup_pending?`${data.deleted_count||photoIds.length} foto dihapus; cleanup Storage masih menunggu dan dapat dicoba ulang.`:`${data.deleted_count||photoIds.length} foto berhasil dihapus.`);
-        await loadAlbums(); await loadAdminAlbums(albumId); await loadAdminPhotos();
-      } catch(error) {
-        $('#managePhotoMessage').textContent=error.message||'Penghapusan foto gagal.';
-        updateDeletePhotoSelection();
+      function openCheckout(event) {
+        state.selectedEvent = event;
+        state.quantity = event.price_type === 'package' ? 1 : Math.max(1, state.quantity);
+        const quantity = Math.max(1, state.quantity);
+        const total = event.price_type === 'package' ? Number(event.price) : Number(event.price) * quantity;
+
+        $('#checkoutEventTitle').textContent = event.title;
+        $('#unitPriceLabel').textContent = event.price_type === 'package' ? 'Paket event' : `${money(event.price)} / foto`;
+        $('#qtyValue').textContent = String(event.price_type === 'package' ? 1 : quantity);
+        $('#checkoutTotal').textContent = money(total);
+        $('#transferAmountText').textContent = money(total);
+        $('#packageMessage').classList.toggle('hidden', event.price_type !== 'package');
+        $('#qtyMinus').disabled = event.price_type === 'package';
+        $('#qtyPlus').disabled = event.price_type === 'package';
+        $('#qtyMinus').style.opacity = event.price_type === 'package' ? '0.45' : '1';
+        $('#qtyPlus').style.opacity = event.price_type === 'package' ? '0.45' : '1';
+
+        const bankName = String(CONFIG.BANK_TRANSFER?.BANK_NAME || 'Nama Bank');
+        const accountNumber = String(CONFIG.BANK_TRANSFER?.ACCOUNT_NUMBER || 'ISI_NOMOR_REKENING');
+        const accountHolder = String(CONFIG.BANK_TRANSFER?.ACCOUNT_HOLDER || 'ISI_NAMA_PEMILIK_REKENING');
+        $('#bankNameText').textContent = bankName;
+        $('#accountNumberText').textContent = accountNumber;
+        $('#accountHolderText').textContent = `a.n. ${accountHolder}`;
+
+        showModal('checkoutModal');
       }
-    }
 
-    async function deleteSelectedAlbum() {
-      const albumId=$('#manageAlbumSelect').value;
-      if(!state.admin||!albumId)return;
-      const album=state.adminAlbums.find(item=>String(item.id)===String(albumId));
-      if(!album||!album.published)return;
-      const confirmed=window.confirm(`Hapus album “${album.title}”? Jika ada riwayat pesanan, album hanya disembunyikan dan data/pembeli tetap dipertahankan. Jika belum ada pesanan, seluruh foto asli, preview, dan data album akan dihapus permanen.`);
-      if(!confirmed)return;
-      $('#deleteAlbumButton').disabled=true; $('#managePhotoMessage').textContent='Mengunci album lalu memeriksa riwayat order…';
-      try {
-        const {data,error}=await invokeFunction('manage-album-content',{action:'delete_album',album_id:albumId});
-        if(error)throw error;
-        if(!data?.ok)throw new Error(data?.error||'Album belum dapat dihapus.');
-        updateCleanupNotice(data.cleanup);
-        toast(data.archived?'Album diarsipkan; order dan akses pembeli tetap aman.':data.cleanup_pending?'Album dihapus; file Storage tersisa di queue retry.':'Album dan foto berhasil dihapus.');
-        await loadAlbums(); await loadAdminAlbums(albumId); await loadAdminPhotos();
-      } catch(error) {
-        $('#managePhotoMessage').textContent=error.message||'Penghapusan album gagal.';
-        updateDeletePhotoSelection();
+      function bindCheckoutControls() {
+        $('#qtyMinus')?.addEventListener('click', () => {
+          const event = state.selectedEvent;
+          if (!event || event.price_type === 'package') return;
+          state.quantity = Math.max(1, state.quantity - 1);
+          updateCheckoutTotal();
+        });
+
+        $('#qtyPlus')?.addEventListener('click', () => {
+          const event = state.selectedEvent;
+          if (!event || event.price_type === 'package') return;
+          state.quantity += 1;
+          updateCheckoutTotal();
+        });
+
+        $('#whatsappCheckoutButton')?.addEventListener('click', () => {
+          const name = $('#buyerNameInput').value.trim();
+          const phone = $('#buyerPhoneInput').value.trim();
+          const event = state.selectedEvent;
+          if (!event) return setToast('Pilih event terlebih dahulu.');
+          if (!name || !phone) return setToast('Isi nama dan nomor WhatsApp sebelum konfirmasi.');
+
+          const total = getSelectedTotal();
+          const whatsappNumber = String(CONFIG.BOOKING_WHATSAPP || '').replace(/\D/g, '');
+          const text = encodeURIComponent(`Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Mohon PIN aksesnya. Nama: ${name}. WhatsApp: ${phone}.`);
+          const link = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${text}` : `https://wa.me/?text=${text}`;
+          window.open(link, '_blank', 'noopener');
+          setToast('Pesan WhatsApp berhasil dibuat.');
+        });
       }
-    }
 
-    async function restoreSelectedAlbum() {
-      const albumId=$('#manageAlbumSelect').value;
-      const album=state.adminAlbums.find(item=>String(item.id)===String(albumId));
-      if(!state.admin||!album||album.published)return;
-      try {
-        const {data,error}=await invokeFunction('manage-album-content',{action:'restore_album',album_id:albumId});
-        if(error)throw new Error(error.message||'Album belum dapat dipulihkan.');
-        if(!data?.ok)throw new Error(data?.error||'Album belum dapat dipulihkan.');
-        toast(`Album “${data.album_title||album.title}” tampil kembali di galeri.`);
-        await loadAlbums(); await loadAdminAlbums(albumId); await loadAdminPhotos();
-      } catch(error) { toast(error.message||'Album belum dapat dipulihkan.'); }
-    }
+      function updateCheckoutTotal() {
+        const event = state.selectedEvent;
+        if (!event) return;
+        const quantity = event.price_type === 'package' ? 1 : state.quantity;
+        const total = event.price_type === 'package' ? Number(event.price) : Number(event.price) * quantity;
+        $('#qtyValue').textContent = String(quantity);
+        $('#checkoutTotal').textContent = money(total);
+        $('#transferAmountText').textContent = money(total);
+      }
 
-    $('#categoryFilter').addEventListener('change',renderGallery);
-    $('#dateFilter').addEventListener('input',renderGallery);
-    $('#clearFilters').addEventListener('click',()=>{$('#categoryFilter').value='all';$('#dateFilter').value='';renderGallery();});
-    $('#galleryGrid').addEventListener('click',event=>{const button=event.target.closest('[data-buy]');if(button)openAlbumGallery(button.dataset.buy);});
-    $('#albumPhotosGrid').addEventListener('click',event=>{const button=event.target.closest('[data-photo-toggle]');if(button&&!button.disabled)togglePhoto(button.dataset.photoToggle);});
-    $('#continueToCheckout').addEventListener('click',()=>{const albumId=state.selectedAlbum?.id;if(albumId){closeModal('albumGalleryModal');openCheckout(albumId);}});
-    document.addEventListener('contextmenu',event=>{if(event.target.closest('[data-preview]'))event.preventDefault();});
-    document.addEventListener('dragstart',event=>{if(event.target.closest('[data-preview]'))event.preventDefault();});
-    $('#createPaymentButton').addEventListener('click',createPayment);
-    $('#manualCheckPayment').addEventListener('click',()=>checkPayment(getSavedOrder()));
-    $('#midtransCheckPayment').addEventListener('click',()=>checkPayment(getSavedOrder()));
-    $('#copyManualOrderButton').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(getSavedOrder()?.order_id||'');toast('ID order disalin.');}catch{toast('Salin ID order secara manual.');}});
-    $('#refreshManualOrders').addEventListener('click',loadManualOrders);
-    $('#manualOrdersList').addEventListener('click',event=>{const confirmButton=event.target.closest('[data-confirm-manual]'),cancelButton=event.target.closest('[data-cancel-manual]');if(confirmButton)confirmManualOrder(confirmButton.dataset.confirmManual);else if(cancelButton)cancelManualOrder(cancelButton.dataset.cancelManual);});
-    $('#checkOrderButton').addEventListener('click',async()=>{const order=getSavedOrder();const box=$('#orderStatusBox');box.classList.remove('hidden');if(!order){box.innerHTML='<p class="text-stone-400">Belum ada pesanan yang dibuat dari tab browser ini. Mulai dari album di galeri untuk membuat transaksi.</p>';return;}box.innerHTML=`<p class="text-xs text-stone-500">Pesanan ${escapeHtml(order.order_id)}</p><p class="mt-2 text-sm text-stone-300">Memeriksa status…</p>`;const data=await checkPayment(order);if(data&&data.status!=='paid')box.innerHTML=`<p class="text-xs text-stone-500">Pesanan ${escapeHtml(order.order_id)}</p><p class="mt-2 font-semibold ${data.status==='expired'||data.status==='failed'?'text-rose-300':'text-amber-200'}">${escapeHtml(statusLabel(data.status))}</p><p class="mt-1 text-xs text-stone-400">${money(data.amount||order.amount)}</p>`;});
-    $('#pinLookupForm').addEventListener('submit',event=>{event.preventDefault();const pin=$('#pinInput').value.trim();if(!/^\d{6}$/.test(pin)){toast('PIN harus terdiri dari enam digit.');return;}lookupPin(pin);});
-    $('#bookingForm').addEventListener('submit',event=>{event.preventDefault();const name=$('#bookingName').value.trim(),date=$('#bookingDate').value,category=$('#bookingCategory').value,notes=$('#bookingNotes').value.trim();const number=String(CONFIG.BOOKING_WHATSAPP||'').replace(/\D/g,'');if(!number){toast('Lengkapi BOOKING_WHATSAPP di env.js untuk menerima booking.');return;}const text=`Halo ImagineWorks Studio, saya ${name}. Saya ingin merencanakan ${category} pada ${date}.${notes?` Catatan: ${notes}`:''}`;window.open(`https://wa.me/${number}?text=${encodeURIComponent(text)}`,'_blank','noopener,noreferrer');});
-    $('#adminLoginForm').addEventListener('submit',handleAdminLogin);
-    $('#adminAlbumForm').addEventListener('submit',submitAlbum);
-    $('#uploadPhotosButton').addEventListener('click',uploadAdminPhotos);
-    $('#manageAlbumSelect').addEventListener('change',()=>{state.selectedDeletePhotoIds.clear();loadAdminPhotos();});
-    $('#managePhotosList').addEventListener('change',event=>{if(event.target.matches('[data-admin-delete-photo]'))updateDeletePhotoSelection();});
-    $('#deleteSelectedPhotosButton').addEventListener('click',deleteSelectedPhotos);
-    $('#deleteAlbumButton').addEventListener('click',deleteSelectedAlbum);
-    $('#restoreArchivedAlbumButton').addEventListener('click',restoreSelectedAlbum);
-    $('#retryStorageCleanupButton').addEventListener('click',()=>retryStorageCleanup(false));
-    $('#adminLogout').addEventListener('click',async()=>{if(state.supabase)await state.supabase.auth.signOut();state.admin=false;state.adminAlbums=[];state.adminPhotos=[];state.selectedDeletePhotoIds.clear();$('#managePhotosList').replaceChildren();$('#manageAlbumSelect').innerHTML='<option value="">Login admin untuk memuat album…</option>';$('#storageCleanupNotice').classList.add('hidden');$('#adminContent').classList.remove('open');$('#adminLoginWrap').classList.remove('hidden');toast('Admin keluar.');});
-    $('#adminReveal').addEventListener('click',revealAdmin);
-    const closeMobileMenu=()=>{$('#mobileMenu').classList.remove('open');$('#mobileMenuButton').setAttribute('aria-expanded','false');};
-    $('#mobileMenuButton').addEventListener('click',()=>{const menu=$('#mobileMenu'),open=!menu.classList.contains('open');menu.classList.toggle('open',open);$('#mobileMenuButton').setAttribute('aria-expanded',String(open));});
-    $('#mobileMenuClose').addEventListener('click',closeMobileMenu);
-    $('#mobileMenu').addEventListener('click',event=>{if(event.target===$('#mobileMenu'))closeMobileMenu();});
-    $$('#mobileMenu a').forEach(link=>link.addEventListener('click',closeMobileMenu));
-    $$('[data-admin-reveal]').forEach(button=>button.addEventListener('click',()=>{closeMobileMenu();revealAdmin();}));
-    $$('[data-close]').forEach(button=>button.addEventListener('click',()=>closeModal(button.dataset.close)));
-    $$('.modal-backdrop').forEach(backdrop=>backdrop.addEventListener('click',event=>{if(event.target===backdrop)closeModal(backdrop.id);}));
-    document.addEventListener('keydown',event=>{if(event.key==='Escape'){ $$('.modal-backdrop.open').forEach(modal=>closeModal(modal.id)); closeMobileMenu(); }});
-    $('#copyPinButton').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('#successPin').textContent);toast('PIN berhasil disalin.');}catch{toast('Salin PIN secara manual.');}});
-    state.currentOrder=getSavedOrder();
-    loadAlbums();
-    if(state.supabase) state.supabase.auth.getSession().then(async({data})=>{if(data.session?.user?.app_metadata?.role==='admin'){state.admin=true;$('#adminPanel').classList.remove('hidden');$('#adminLoginWrap').classList.add('hidden');$('#adminContent').classList.add('open');await loadAdminAlbums();await loadManualOrders();await retryStorageCleanup(true);await loadAdminPhotos();}});
-  })();
+      function getSelectedTotal() {
+        const event = state.selectedEvent;
+        if (!event) return 0;
+        const qty = event.price_type === 'package' ? 1 : state.quantity;
+        return event.price_type === 'package' ? Number(event.price) : Number(event.price) * qty;
+      }
+
+      function renderAdminTable() {
+        const target = $('#adminEventList');
+        if (!target) return;
+
+        if (!state.events.length) {
+          target.innerHTML = '<p class="text-sm text-stone-400">Belum ada event tersimpan.</p>';
+          return;
+        }
+
+        const rows = state.events.map(event => `
+          <tr>
+            <td>${escapeHtml(event.title)}</td>
+            <td>${escapeHtml(CATEGORY_LABELS[event.category] || event.category)}</td>
+            <td>${escapeHtml(event.event_date)}</td>
+            <td>${escapeHtml(event.price_type === 'package' ? 'Paket' : 'Per Photo')}</td>
+            <td>${money(event.price)}</td>
+            <td><button class="btn-primary generate-pin-btn" data-event-id="${event.id}" type="button">Terbitkan PIN</button></td>
+            <td><button class="btn-danger delete-event-btn" data-event-id="${event.id}" type="button">Hapus Event</button></td>
+          </tr>
+        `).join('');
+
+        target.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Kategori</th>
+                <th>Tanggal</th>
+                <th>Harga</th>
+                <th>Nominal</th>
+                <th>PIN</th>
+                <th>Hapus</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        `;
+
+        $$('[data-event-id].generate-pin-btn').forEach(button => {
+          button.addEventListener('click', async () => {
+            const eventId = button.dataset.eventId;
+            const event = state.events.find(item => item.id === eventId);
+            if (!event) return;
+            await createPurchasedSession(event);
+          });
+        });
+
+        $$('[data-event-id].delete-event-btn').forEach(button => {
+          button.addEventListener('click', async () => {
+            const eventId = button.dataset.eventId;
+            await deleteEvent(eventId);
+          });
+        });
+      }
+
+      function populateDemoFields() {
+        const eventTitle = $('#eventTitle');
+        const eventDate = $('#eventDate');
+        const eventCategory = $('#eventCategory');
+        const eventPriceType = $('#eventPriceType');
+        const eventPrice = $('#eventPrice');
+        const eventPhotoUrl = $('#eventPhotoUrl');
+        const eventCoverUrl = $('#eventCoverUrl');
+
+        if (!eventTitle || !eventDate || !eventCategory || !eventPriceType || !eventPrice || !eventPhotoUrl || !eventCoverUrl) return;
+
+        eventTitle.value = 'Portrait Session · Studio';
+        eventDate.value = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+        eventCategory.value = 'personal';
+        eventPriceType.value = 'per_photo';
+        eventPrice.value = '25000';
+        eventPhotoUrl.value = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80';
+        eventCoverUrl.value = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80';
+      }
+
+      function resetEventForm() {
+        $('#eventTitle').value = '';
+        $('#eventDate').value = '';
+        $('#eventCategory').value = 'personal';
+        $('#eventPriceType').value = 'per_photo';
+        $('#eventPrice').value = '25000';
+        $('#eventPhotoUrl').value = '';
+        $('#eventCoverUrl').value = '';
+      }
+
+      async function saveEvent() {
+        const title = $('#eventTitle').value.trim();
+        const eventDate = $('#eventDate').value;
+        const category = $('#eventCategory').value;
+        const priceType = $('#eventPriceType').value;
+        const price = Number($('#eventPrice').value || 0);
+        const photoUrl = safeUrl($('#eventPhotoUrl').value.trim());
+        const coverUrl = safeUrl($('#eventCoverUrl').value.trim()) || photoUrl;
+
+        if (!title || !eventDate || !category || !price || !photoUrl) {
+          setToast('Isi judul event, tanggal, nominal, dan URL foto original.');
+          return;
+        }
+
+        const newEvent = {
+          id: crypto.randomUUID ? crypto.randomUUID() : `event-${Date.now()}`,
+          title,
+          event_date: eventDate,
+          category,
+          price_type: priceType,
+          price,
+          photo_url: photoUrl,
+          cover_url: coverUrl,
+          created_at: new Date().toISOString()
+        };
+
+        if (state.demoMode) {
+          const all = getStoredEvents();
+          all.unshift(newEvent);
+          saveStoredEvents(all);
+          state.events = all;
+          renderAlbumGrid();
+          renderAdminTable();
+          resetEventForm();
+          setToast('Event baru berhasil dibuat di mode demo.');
+          return;
+        }
+
+        try {
+          const { error } = await state.supabase.from('events_album').insert([newEvent]);
+          if (error) throw error;
+          state.events = [...state.events, newEvent];
+          renderAlbumGrid();
+          renderAdminTable();
+          resetEventForm();
+          setToast('Event berhasil ditambahkan ke Supabase.');
+        } catch (error) {
+          setToast('Gagal menyimpan event ke Supabase.');
+          console.error(error);
+        }
+      }
+
+      async function deleteEvent(eventId) {
+        const confirmed = window.confirm('Yakin menghapus event ini? Aksi ini akan menghapus data event dari daftar publik.');
+        if (!confirmed) return;
+
+        if (state.demoMode) {
+          const filtered = getStoredEvents().filter(item => item.id !== eventId);
+          saveStoredEvents(filtered);
+          state.events = filtered;
+          renderAlbumGrid();
+          renderAdminTable();
+          setToast('Event berhasil dihapus dari demo.');
+          return;
+        }
+
+        try {
+          const { error } = await state.supabase.from('events_album').delete().eq('id', eventId);
+          if (error) throw error;
+          state.events = state.events.filter(item => item.id !== eventId);
+          renderAlbumGrid();
+          renderAdminTable();
+          setToast('Event berhasil dihapus.');
+        } catch (error) {
+          setToast('Gagal menghapus event.');
+          console.error(error);
+        }
+      }
+
+      async function createPurchasedSession(event) {
+        const pin = String(Math.floor(100000 + Math.random() * 900000));
+        const expiresAt = new Date(Date.now() + (60 * 24 * 60 * 60 * 1000)).toISOString();
+        const session = {
+          id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+          event_id: event.id,
+          event_title: event.title,
+          event_date: event.event_date,
+          photo_url: event.photo_url,
+          pin,
+          expires_at: expiresAt,
+          status: 'active',
+          created_at: new Date().toISOString(),
+          total_price: Number(event.price)
+        };
+
+        if (state.demoMode) {
+          const sessions = getStoredPurchasedSessions();
+          sessions.unshift(session);
+          saveStoredPurchasedSessions(sessions);
+          setToast(`PIN berhasil dibuat: ${pin}`);
+          window.alert(`PIN untuk ${event.title}: ${pin}\nBerlaku sampai: ${new Date(expiresAt).toLocaleString('id-ID')}`);
+          return;
+        }
+
+        try {
+          const { error } = await state.supabase.from('purchased_sessions').insert([session]);
+          if (error) throw error;
+          setToast(`PIN berhasil dibuat: ${pin}`);
+          window.alert(`PIN untuk ${event.title}: ${pin}\nBerlaku sampai: ${new Date(expiresAt).toLocaleString('id-ID')}`);
+        } catch (error) {
+          setToast('Gagal menerbitkan PIN otomatis.');
+          console.error(error);
+        }
+      }
+
+      async function fetchSessionByPin(pin) {
+        const clean = String(pin || '').replace(/\D/g, '').slice(0, 6);
+        if (!clean || clean.length !== 6) return null;
+
+        if (state.demoMode) {
+          const sessions = getStoredPurchasedSessions();
+          return sessions.find(item => item.pin === clean) || null;
+        }
+
+        try {
+          const { data, error } = await state.supabase
+            .from('purchased_sessions')
+            .select('*')
+            .eq('pin', clean)
+            .maybeSingle();
+          if (error) throw error;
+          return data || null;
+        } catch (error) {
+          return null;
+        }
+      }
+
+      async function handlePinCheck() {
+        const input = $('#pinInput');
+        const value = String(input?.value || '').trim();
+        if (!value || value.length !== 6) {
+          setResult('#pinResult', 'PIN harus 6 digit.', true);
+          return;
+        }
+
+        const session = await fetchSessionByPin(value);
+        if (!session) {
+          const localSession = getStoredPurchasedSessions().find(item => item.pin === value);
+          if (!localSession) {
+            setResult('#pinResult', 'PIN tidak terdaftar atau belum aktif.', true);
+            return;
+          }
+          if (getDaysRemaining(localSession.expires_at) <= 0) {
+            setResult('#pinResult', 'PIN sudah kedaluwarsa. Silakan hubungi admin untuk perpanjangan.', true);
+            return;
+          }
+          setResult('#pinResult', `PIN valid. Foto Anda masih aktif selama ${getDaysRemaining(localSession.expires_at)} hari. Akses dapat dibuka di menu Foto Saya.`, false);
+          return;
+        }
+
+        const remaining = getDaysRemaining(session.expires_at);
+        if (remaining <= 0) {
+          setResult('#pinResult', 'PIN sudah kedaluwarsa. Silakan hubungi admin untuk perpanjangan.', true);
+          return;
+        }
+
+        setResult('#pinResult', `PIN valid. Foto Anda masih aktif selama ${remaining} hari. Akses dapat dibuka di menu Foto Saya.`, false);
+      }
+
+      function getDaysRemaining(expiresAt) {
+        const expires = new Date(expiresAt).getTime();
+        const now = Date.now();
+        return Math.max(0, Math.ceil((expires - now) / 86400000));
+      }
+
+      async function handlePhotoAccess() {
+        const pin = String($('#photoPinInput').value || '').trim();
+        if (!pin || pin.length !== 6) {
+          setResult('#photoAccessResult', 'Masukkan PIN 6 digit terlebih dahulu.', true);
+          return;
+        }
+
+        const session = await fetchSessionByPin(pin);
+        if (!session) {
+          setResult('#photoAccessResult', 'PIN tidak valid atau tidak ditemukan.', true);
+          return;
+        }
+
+        const remaining = getDaysRemaining(session.expires_at);
+        if (remaining <= 0) {
+          setResult('#photoAccessResult', 'PIN sudah kedaluwarsa. Akses foto original diblokir.', true);
+          return;
+        }
+
+        const fileUrl = safeUrl(session.photo_url) || safeUrl(session.cover_url) || '';
+        const message = `PIN valid. Sisa waktu akses: ${remaining} hari. <a href="${fileUrl}" target="_blank" rel="noopener" class="text-gold underline">Download Foto Asli HD</a>`;
+        setResult('#photoAccessResult', message, false);
+      }
+
+      async function loginAdmin() {
+        const email = $('#adminEmailInput').value.trim();
+        const password = $('#adminPasswordInput').value.trim();
+        const configEmail = String(CONFIG.ADMIN_EMAIL || '').trim();
+        const configPassword = String(CONFIG.ADMIN_PASSWORD || '').trim();
+
+        if (!state.supabase && !state.demoMode) {
+          setToast('Supabase belum siap. Isi config env.js terlebih dahulu.');
+          return;
+        }
+
+        if (state.demoMode) {
+          if (configEmail && configPassword && (email === configEmail && password === configPassword)) {
+            state.adminMode = true;
+            $('#adminSection').classList.remove('hidden');
+            closeModal('adminLoginModal');
+            setToast('Mode admin demo aktif.');
+            return;
+          }
+
+          if (!configEmail && !configPassword) {
+            state.adminMode = true;
+            $('#adminSection').classList.remove('hidden');
+            closeModal('adminLoginModal');
+            setToast('Mode admin demo aktif.');
+            return;
+          }
+
+          setToast('Email/password admin tidak sesuai.');
+          return;
+        }
+
+        try {
+          const { data, error } = await state.supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          state.adminMode = true;
+          $('#adminSection').classList.remove('hidden');
+          closeModal('adminLoginModal');
+          setToast('Login admin berhasil.');
+        } catch (error) {
+          setToast('Login admin gagal. Periksa email/password Supabase.');
+          console.error(error);
+        }
+      }
+
+      function logoutAdmin() {
+        state.adminMode = false;
+        $('#adminSection').classList.add('hidden');
+        setToast('Admin logout.');
+      }
+
+      function bindGlobalActions() {
+        $('#heroBookButton')?.addEventListener('click', () => {
+          document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        $('#heroViewGalleryButton')?.addEventListener('click', () => {
+          document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        $('#sidebarBookingButton')?.addEventListener('click', () => {
+          document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        $('#footerAdminButton')?.addEventListener('click', () => showModal('adminLoginModal'));
+        $('#openAdminWindow')?.addEventListener('click', () => showModal('adminLoginModal'));
+        $('#mobileAdminButton')?.addEventListener('click', () => showModal('adminLoginModal'));
+        $('#mobileMenuButton')?.addEventListener('click', () => $('#mobileMenu').classList.toggle('hidden'));
+        $('#checkPinButton')?.addEventListener('click', handlePinCheck);
+        $('#photoAccessButton')?.addEventListener('click', handlePhotoAccess);
+        $('#saveEventButton')?.addEventListener('click', saveEvent);
+        $('#adminLoginButton')?.addEventListener('click', loginAdmin);
+        $('#logoutAdminButton')?.addEventListener('click', logoutAdmin);
+
+        document.querySelectorAll('[data-close]').forEach(button => {
+          button.addEventListener('click', () => closeModal(button.dataset.close));
+        });
+
+        document.querySelectorAll('[data-open-booking]').forEach(button => {
+          button.addEventListener('click', () => {
+            const category = button.dataset.openBooking;
+            $('#galleryCategoryFilter').value = category;
+            renderAlbumGrid();
+            document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          });
+        });
+
+        $('#galleryCategoryFilter')?.addEventListener('change', renderAlbumGrid);
+        $('#galleryDateFilter')?.addEventListener('input', renderAlbumGrid);
+        $('#pinInput')?.addEventListener('input', () => {
+          const val = $('#pinInput').value.replace(/\D/g, '').slice(0, 6);
+          $('#pinInput').value = val;
+        });
+        $('#photoPinInput')?.addEventListener('input', () => {
+          const val = $('#photoPinInput').value.replace(/\D/g, '').slice(0, 6);
+          $('#photoPinInput').value = val;
+        });
+      }
+
+      function init() {
+        document.getElementById('yearNow').textContent = new Date().getFullYear();
+        initSupabase();
+        bindGlobalActions();
+        bindCheckoutControls();
+        populateDemoFields();
+        loadEvents();
+      }
+
+      init();
+    })();
   </script>
 </body>
 </html>
