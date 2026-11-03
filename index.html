@@ -1613,34 +1613,35 @@
         });
 
         $('#whatsappCheckoutButton')?.addEventListener('click', async () => {
-          const name = $('#buyerNameInput').value.trim();
-          const phone = $('#buyerPhoneInput').value.trim();
+          const buyerNameInput = $('#buyerNameInput').value.trim();
+          const buyerPhoneInput = $('#buyerPhoneInput').value.trim();
           const event = state.selectedEvent;
           if (!event) return setToast('Pilih event terlebih dahulu.');
-          if (!name || !phone) return setToast('Isi nama dan nomor WhatsApp sebelum konfirmasi.');
+          if (!buyerNameInput || !buyerPhoneInput) return setToast('Isi nama dan nomor WhatsApp sebelum konfirmasi.');
 
           const total = getSelectedTotal();
           const selectedPhotos = getCheckoutSelectedPhotos(event);
-          if (selectedPhotos.length) {
-            state.selectedPhotoUrls = selectedPhotos;
-            state.checkoutSessionData = {
-              event_id: event.id,
-              selected_photo_urls: selectedPhotos,
-              selected_photo_ids: [],
-              buyer_name: name,
-              buyer_phone: phone,
-              total_price: total
-            };
-            try { localStorage.setItem('imagineworks-checkout-selection', JSON.stringify(state.checkoutSessionData)); } catch {}
-          }
+          const localCheckoutState = {
+            event_id: event.id,
+            selected_photo_urls: selectedPhotos,
+            selected_photo_ids: [],
+            buyer_name: buyerNameInput,
+            buyer_phone: buyerPhoneInput,
+            total_price: total,
+            created_at: new Date().toISOString()
+          };
 
-          const generatedPin = await createPurchasedSession(event, name, phone, total);
+          state.selectedPhotoUrls = selectedPhotos;
+          state.checkoutSessionData = localCheckoutState;
+          try { localStorage.setItem('imagineworks-checkout-selection', JSON.stringify(localCheckoutState)); } catch {}
+
+          const generatedPin = await createPurchasedSession(event, buyerNameInput, buyerPhoneInput, total);
           if (!generatedPin) {
             return;
           }
 
           const targetPhone = formatWhatsAppNumber(CONFIG.BOOKING_WHATSAPP || '6285349991313');
-          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Nama: ${name}. WhatsApp: ${phone}. Jumlah foto: ${selectedPhotos.length}. Kode PIN: ${generatedPin}.`;
+          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Nama: ${buyerNameInput}. WhatsApp: ${buyerPhoneInput}. Album: ${event.title}. Jumlah foto: ${selectedPhotos.length}. Total transfer: ${money(total)}. Kode PIN: ${generatedPin}.`;
           const cleanPhone = String(targetPhone || '').replace(/^0/, '62').replace(/[^0-9]/g, '') || '6285349991313';
           const link = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
           window.open(link, '_blank', 'noopener');
@@ -2054,78 +2055,85 @@
       }
 
       async function createPurchasedSession(event, buyerName = '', buyerPhone = '', totalPrice = 0) {
-        const generatedPin = Math.floor(100000 + Math.random() * 900000).toString();
+        const now = new Date();
+        const expiresDate = new Date(now.setDate(now.getDate() + 60)).toISOString();
+        const autoPin = Math.floor(100000 + Math.random() * 900000).toString();
         const dummyIv = 'iv-' + Date.now();
-        const expiresAt = new Date(Date.now() + (60 * 24 * 60 * 60 * 1000)).toISOString();
         const selectedPhotoUrls = getCheckoutSelectedPhotos(event);
-        const orderId = 'ORD-' + Date.now();
         const finalTotalPrice = Number(totalPrice || 0) || Number(event?.price || 0) || 0;
-        const pinData = {
-          order_id: orderId,
-          album_id: event.id,
+
+        const localOrderRecord = {
+          id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
+          pin_code: autoPin,
           event_id: event.id,
           event_title: event.title,
           buyer_name: buyerName,
           buyer_phone: buyerPhone,
-          total_price: finalTotalPrice,
-          pin_hash: generatedPin,
-          pin_ciphertext: generatedPin,
-          pin_iv: dummyIv,
           selected_photo_urls: selectedPhotoUrls,
           selected_photo_ids: [],
-          drive_url: '-',
-          expires_at: expiresAt,
-          created_at: new Date().toISOString()
+          total_price: finalTotalPrice,
+          created_at: new Date().toISOString(),
+          expires_at: expiresDate
         };
 
         if (state.demoMode) {
           const sessions = getStoredPurchasedSessions();
-          const sessionRecord = {
-            ...pinData,
-            pin_code: generatedPin,
-            id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`,
-            created_at: new Date().toISOString()
-          };
-          sessions.unshift(sessionRecord);
+          sessions.unshift(localOrderRecord);
           saveStoredPurchasedSessions(sessions);
           state.orders = sessions;
           renderOrdersTable();
-          showGeneratedPinModal(event, generatedPin, expiresAt);
-          setToast(`PIN berhasil dibuat: ${generatedPin}`);
-          return generatedPin;
+          showGeneratedPinModal(event, autoPin, expiresDate);
+          setToast(`PIN berhasil dibuat: ${autoPin}`);
+          return autoPin;
+        }
+
+        let paymentOrderId = null;
+        try {
+          const { data: orderData, error: orderErr } = await state.supabase
+            .from('payment_orders')
+            .insert({
+              album_id: event.id,
+              amount: finalTotalPrice,
+              status: 'paid'
+            })
+            .select()
+            .single();
+
+          if (!orderErr && orderData?.id) {
+            paymentOrderId = orderData.id;
+          }
+        } catch (error) {
+          console.warn('payment_orders insert fallback used:', error);
+        }
+
+        const payload = {
+          album_id: event.id,
+          pin_hash: autoPin,
+          pin_ciphertext: autoPin,
+          pin_iv: dummyIv,
+          drive_url: '-',
+          expires_at: expiresDate
+        };
+
+        if (paymentOrderId) {
+          payload.order_id = paymentOrderId;
         }
 
         try {
-          const { error } = await state.supabase.from('purchased_sessions').insert({
-            order_id: pinData.order_id,
-            album_id: pinData.album_id,
-            event_id: pinData.event_id,
-            event_title: pinData.event_title,
-            buyer_name: pinData.buyer_name,
-            buyer_phone: pinData.buyer_phone,
-            total_price: pinData.total_price,
-            pin_hash: pinData.pin_hash,
-            pin_ciphertext: pinData.pin_ciphertext,
-            pin_iv: pinData.pin_iv,
-            drive_url: pinData.drive_url,
-            selected_photo_urls: pinData.selected_photo_urls,
-            selected_photo_ids: pinData.selected_photo_ids,
-            expires_at: pinData.expires_at,
-            created_at: pinData.created_at
-          });
+          const { error } = await state.supabase.from('purchased_sessions').insert(payload);
           if (error) throw error;
+
           const stored = getStoredPurchasedSessions();
           stored.unshift({
-            ...pinData,
-            pin_code: generatedPin,
-            id: crypto.randomUUID ? crypto.randomUUID() : `session-${Date.now()}`
+            ...localOrderRecord,
+            order_id: paymentOrderId || null
           });
           saveStoredPurchasedSessions(stored);
           state.orders = stored;
           renderOrdersTable();
-          showGeneratedPinModal(event, generatedPin, expiresAt);
-          setToast(`PIN berhasil dibuat: ${generatedPin}`);
-          return generatedPin;
+          showGeneratedPinModal(event, autoPin, expiresDate);
+          setToast(`PIN berhasil dibuat: ${autoPin}`);
+          return autoPin;
         } catch (error) {
           const detail = getSupabaseErrorDetail(error);
           setToast(`Gagal menerbitkan PIN otomatis: ${detail}`);
