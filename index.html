@@ -296,6 +296,28 @@
       color: #f5f1e8;
       padding: 0.76rem 0.88rem;
     }
+    .dropzone {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      min-height: 132px;
+      border: 1.5px dashed rgba(229,193,88,.38);
+      border-radius: 16px;
+      background: rgba(229,193,88,.04);
+      padding: 1rem;
+      transition: border-color .2s ease, background .2s ease;
+    }
+    .dropzone.dragover {
+      border-color: rgba(229,193,88,.85);
+      background: rgba(229,193,88,.08);
+    }
+    .dropzone input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
     .field-label { font-size: .72rem; color: #b7b0a4; }
     .panel-box {
       background: rgba(255,255,255,0.02);
@@ -602,10 +624,21 @@
                   <input id="eventPrice" class="control mt-2" type="number" min="0" step="1000" placeholder="15000" />
                 </label>
               </div>
-              <label class="block">
-                <span class="field-label">URL Foto Original / Direct Link</span>
-                <input id="eventPhotoUrl" class="control mt-2" type="url" placeholder="https://.../photo.jpg" />
-              </label>
+              <div class="block">
+                <span class="field-label">Foto Original HD</span>
+                <div id="eventPhotoDropZone" class="dropzone mt-2">
+                  <input id="eventPhotoInput" type="file" accept="image/*" multiple />
+                  <div class="flex items-center justify-between gap-3 text-sm text-stone-200">
+                    <span>Tarik & lepas file foto di sini</span>
+                    <span class="rounded-full border border-gold/20 bg-gold/10 px-2 py-1 text-[.62rem] uppercase tracking-[.12em] text-gold">Pilih file</span>
+                  </div>
+                  <p class="text-[.68rem] leading-5 text-stone-400">Format JPG/PNG/WebP. File akan diupload ke bucket Supabase <strong>studio-photos</strong>.</p>
+                  <div id="photoUploadStatus" class="hidden text-[.68rem] text-emerald-300"></div>
+                  <div id="photoUploadProgressWrap" class="hidden h-2 overflow-hidden rounded-full bg-white/5">
+                    <div id="photoUploadProgress" class="h-full w-0 rounded-full bg-gold transition-all duration-300"></div>
+                  </div>
+                </div>
+              </div>
               <label class="block">
                 <span class="field-label">URL Cover Preview (opsional)</span>
                 <input id="eventCoverUrl" class="control mt-2" type="url" placeholder="https://.../cover.jpg" />
@@ -723,6 +756,18 @@
     </div>
   </div>
 
+  <div id="pinModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="pinModalTitle">
+    <div class="modal-card p-5 sm:p-7 text-center">
+      <button class="close-modal absolute right-5 top-5 grid h-9 w-9 place-items-center rounded-full border border-white/10 text-stone-400" data-close="pinModal" aria-label="Tutup" type="button">×</button>
+      <p class="eyebrow">PIN Terbit</p>
+      <h2 id="pinModalTitle" class="serif mt-2 text-3xl">Akses foto siap dibuat</h2>
+      <p id="pinModalEventTitle" class="mt-3 text-sm text-stone-400"></p>
+      <div id="pinModalValue" class="pin-box mt-6 rounded-2xl border border-gold/25 bg-black/25 py-5 text-3xl font-bold text-gold">000000</div>
+      <p id="pinModalExpiry" class="mt-4 text-xs text-stone-500"></p>
+      <button id="copyPinButton" class="btn-primary mt-5" type="button">Salin PIN</button>
+    </div>
+  </div>
+
   <script src="./env.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
@@ -770,6 +815,7 @@
           created_at: new Date().toISOString()
         }
       ];
+      const STORAGE_BUCKET = String(CONFIG.STORAGE_BUCKET || 'studio-photos').trim() || 'studio-photos';
 
       const state = {
         supabase: null,
@@ -778,7 +824,9 @@
         quantity: 1,
         adminMode: false,
         demoMode: true,
-        activePin: null
+        activePin: null,
+        uploadedPhotoUrl: '',
+        uploadBusy: false
       };
 
       const $ = (selector, root = document) => root.querySelector(selector);
@@ -839,6 +887,62 @@
         state.supabase = window.supabase.createClient(supabaseUrl, supabaseKey, {
           auth: { persistSession: true, autoRefreshToken: true }
         });
+      }
+
+      function getSupabaseErrorDetail(error) {
+        if (!error) return 'Error tidak diketahui.';
+        if (typeof error === 'string') return error;
+        return error.message || error.details || error.code || 'Error Supabase tidak diketahui.';
+      }
+
+      function updateUploadUi(fileName, percentage, statusText, isVisible) {
+        const status = $('#photoUploadStatus');
+        const wrap = $('#photoUploadProgressWrap');
+        const bar = $('#photoUploadProgress');
+        if (!status || !wrap || !bar) return;
+        status.textContent = statusText;
+        status.classList.toggle('hidden', !isVisible);
+        wrap.classList.toggle('hidden', !isVisible);
+        if (!isVisible) {
+          bar.style.width = '0%';
+          return;
+        }
+        if (fileName) {
+          status.textContent = `${statusText}: ${fileName}`;
+        }
+        bar.style.width = `${Math.max(0, Math.min(100, percentage))}%`;
+      }
+
+      async function uploadEventPhoto(file) {
+        if (!file) return '';
+        if (state.demoMode) {
+          const demoUrl = URL.createObjectURL(file);
+          state.uploadedPhotoUrl = demoUrl;
+          updateUploadUi(file.name, 100, 'Demo: file siap digunakan', true);
+          return demoUrl;
+        }
+
+        if (!state.supabase) {
+          throw new Error('Supabase belum siap. Isi config env.js dan pastikan project aktif.');
+        }
+
+        const safeName = String(file.name || 'upload').replace(/\s+/g, '-');
+        const filePath = `events/${Date.now()}-${safeName}`;
+        updateUploadUi(file.name, 25, 'Mengunggah foto ke Supabase', true);
+
+        const { data, error } = await state.supabase.storage.from(STORAGE_BUCKET).upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+          contentType: file.type || 'image/jpeg'
+        });
+
+        if (error) {
+          throw new Error(getSupabaseErrorDetail(error));
+        }
+
+        const publicUrl = state.supabase.storage.from(STORAGE_BUCKET).getPublicUrl(data.path).data.publicUrl;
+        updateUploadUi(file.name, 100, 'Upload selesai', true);
+        return publicUrl;
       }
 
       function ensureStorage() {
@@ -1106,17 +1210,15 @@
         const eventCategory = $('#eventCategory');
         const eventPriceType = $('#eventPriceType');
         const eventPrice = $('#eventPrice');
-        const eventPhotoUrl = $('#eventPhotoUrl');
         const eventCoverUrl = $('#eventCoverUrl');
 
-        if (!eventTitle || !eventDate || !eventCategory || !eventPriceType || !eventPrice || !eventPhotoUrl || !eventCoverUrl) return;
+        if (!eventTitle || !eventDate || !eventCategory || !eventPriceType || !eventPrice || !eventCoverUrl) return;
 
         eventTitle.value = 'Portrait Session · Studio';
         eventDate.value = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
         eventCategory.value = 'personal';
         eventPriceType.value = 'per_photo';
         eventPrice.value = '25000';
-        eventPhotoUrl.value = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80';
         eventCoverUrl.value = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80';
       }
 
@@ -1126,8 +1228,10 @@
         $('#eventCategory').value = 'personal';
         $('#eventPriceType').value = 'per_photo';
         $('#eventPrice').value = '25000';
-        $('#eventPhotoUrl').value = '';
         $('#eventCoverUrl').value = '';
+        const input = $('#eventPhotoInput');
+        if (input) input.value = '';
+        updateUploadUi('', 0, '', false);
       }
 
       async function saveEvent() {
@@ -1136,11 +1240,28 @@
         const category = $('#eventCategory').value;
         const priceType = $('#eventPriceType').value;
         const price = Number($('#eventPrice').value || 0);
-        const photoUrl = safeUrl($('#eventPhotoUrl').value.trim());
+        const coverUrlInput = $('#eventCoverUrl').value.trim();
+        const selectedFiles = $('#eventPhotoInput')?.files || [];
+        let photoUrl = safeUrl(coverUrlInput) || (selectedFiles[0] ? URL.createObjectURL(selectedFiles[0]) : '');
+
+        if (!selectedFiles.length && !photoUrl) {
+          setToast('Upload foto asli HD atau masukkan URL cover preview.');
+          return;
+        }
+
+        if (selectedFiles.length) {
+          try {
+            photoUrl = await uploadEventPhoto(selectedFiles[0]);
+          } catch (error) {
+            setToast(getSupabaseErrorDetail(error));
+            return;
+          }
+        }
+
         const coverUrl = safeUrl($('#eventCoverUrl').value.trim()) || photoUrl;
 
         if (!title || !eventDate || !category || !price || !photoUrl) {
-          setToast('Isi judul event, tanggal, nominal, dan URL foto original.');
+          setToast('Isi judul event, tanggal, nominal, dan foto original.');
           return;
         }
 
@@ -1177,7 +1298,8 @@
           resetEventForm();
           setToast('Event berhasil ditambahkan ke Supabase.');
         } catch (error) {
-          setToast('Gagal menyimpan event ke Supabase.');
+          const detail = getSupabaseErrorDetail(error);
+          setToast(`Gagal menyimpan event: ${detail}`);
           console.error(error);
         }
       }
@@ -1204,7 +1326,8 @@
           renderAdminTable();
           setToast('Event berhasil dihapus.');
         } catch (error) {
-          setToast('Gagal menghapus event.');
+          const detail = getSupabaseErrorDetail(error);
+          setToast(`Gagal menghapus event: ${detail}`);
           console.error(error);
         }
       }
@@ -1229,18 +1352,19 @@
           const sessions = getStoredPurchasedSessions();
           sessions.unshift(session);
           saveStoredPurchasedSessions(sessions);
+          showGeneratedPinModal(event, pin, expiresAt);
           setToast(`PIN berhasil dibuat: ${pin}`);
-          window.alert(`PIN untuk ${event.title}: ${pin}\nBerlaku sampai: ${new Date(expiresAt).toLocaleString('id-ID')}`);
           return;
         }
 
         try {
           const { error } = await state.supabase.from('purchased_sessions').insert([session]);
           if (error) throw error;
+          showGeneratedPinModal(event, pin, expiresAt);
           setToast(`PIN berhasil dibuat: ${pin}`);
-          window.alert(`PIN untuk ${event.title}: ${pin}\nBerlaku sampai: ${new Date(expiresAt).toLocaleString('id-ID')}`);
         } catch (error) {
-          setToast('Gagal menerbitkan PIN otomatis.');
+          const detail = getSupabaseErrorDetail(error);
+          setToast(`Gagal menerbitkan PIN otomatis: ${detail}`);
           console.error(error);
         }
       }
@@ -1380,7 +1504,90 @@
         setToast('Admin logout.');
       }
 
+      function showGeneratedPinModal(event, pin, expiresAt) {
+        const modalEventTitle = $('#pinModalEventTitle');
+        const modalValue = $('#pinModalValue');
+        const modalExpiry = $('#pinModalExpiry');
+        if (!modalEventTitle || !modalValue || !modalExpiry) return;
+
+        modalEventTitle.textContent = `Event: ${event.title}`;
+        modalValue.textContent = pin;
+        modalExpiry.textContent = `Berlaku sampai: ${new Date(expiresAt).toLocaleString('id-ID')}`;
+        state.activePin = pin;
+        showModal('pinModal');
+      }
+
+      async function copyPinToClipboard() {
+        const value = $('#pinModalValue')?.textContent.trim();
+        if (!value) return;
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(value);
+          } else {
+            const area = document.createElement('textarea');
+            area.value = value;
+            area.style.position = 'fixed';
+            area.style.opacity = '0';
+            document.body.appendChild(area);
+            area.select();
+            document.execCommand('copy');
+            document.body.removeChild(area);
+          }
+          setToast('PIN berhasil disalin.');
+        } catch (error) {
+          setToast('PIN tidak bisa disalin otomatis, silakan copy manual.');
+        }
+      }
+
+      function bindDropzoneHandlers() {
+        const dropZone = $('#eventPhotoDropZone');
+        const fileInput = $('#eventPhotoInput');
+        if (!dropZone || !fileInput) return;
+
+        const onSelectedFiles = () => {
+          const file = fileInput.files && fileInput.files[0];
+          if (!file) {
+            updateUploadUi('', 0, '', false);
+            return;
+          }
+          updateUploadUi(file.name, 100, 'File siap diunggah', true);
+        };
+
+        ['dragenter', 'dragover'].forEach(type => {
+          dropZone.addEventListener(type, event => {
+            event.preventDefault();
+            dropZone.classList.add('dragover');
+          });
+        });
+
+        ['dragleave', 'drop'].forEach(type => {
+          dropZone.addEventListener(type, event => {
+            event.preventDefault();
+            dropZone.classList.remove('dragover');
+          });
+        });
+
+        dropZone.addEventListener('drop', event => {
+          const files = Array.from(event.dataTransfer?.files || []).filter(file => file.type.startsWith('image/'));
+          if (!files.length) {
+            setToast('File yang dimasukkan harus berupa gambar.');
+            return;
+          }
+          const transfer = new DataTransfer();
+          files.forEach(file => transfer.items.add(file));
+          fileInput.files = transfer.files;
+          const selected = files[0];
+          updateUploadUi(selected.name, 100, 'File gambar siap diupload', true);
+        });
+
+        fileInput.addEventListener('change', onSelectedFiles);
+        $('#copyPinButton')?.addEventListener('click', copyPinToClipboard);
+      }
+
       function bindGlobalActions() {
+        bindDropzoneHandlers();
+
         $('#heroBookButton')?.addEventListener('click', () => {
           document.getElementById('booking')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
