@@ -19,7 +19,7 @@ window.IMAGINEWORKS_CONFIG = Object.freeze({
   // Isi dari Supabase Dashboard > Project Settings > API.
   // GANTI NILAI INI DENGAN PROJECT SUPABASE ANDA YANG SESUNGGUHNYA.
   SUPABASE_URL: 'https://gfhupmpyxjhgxklnuvqr.supabase.co',
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY_HeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmaHVwbXB5eGpoZ3hrbG51dnFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5NzgyMTIsImV4cCI6MjEwODU1NDIxMn0.cUAuksVoDlVfCGq3ewCHW9diKHAbtMbwgclb4EDKE0gERE',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmaHVwbXB5eGpoZ3hrbG51dnFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI5NzgyMTIsImV4cCI6MjEwODU1NDIxMn0.cUAuksVoDlVfCGq3ewCHW9diKHAbtMbwgclb4EDKE0g',
   STORAGE_BUCKET: 'studio-photos',
 
   // Opsional; bila kosong, aplikasi akan memakai fallback demo lokal.
