@@ -138,11 +138,17 @@
     @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
     .hero {
       position: relative;
-      min-height: 440px;
-      background: linear-gradient(90deg, rgba(18,18,18,.97), rgba(18,18,18,.82) 52%, rgba(18,18,18,.28)), url('./assets/imagineworks-hero.jpg') center 52%/cover no-repeat;
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 28px;
+      min-height: 320px;
+      display: flex;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(17,17,17,0.98), rgba(24,24,24,0.96));
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 32px;
       overflow: hidden;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .hero > #hero-card-img {
+      display: none;
     }
     .hero::after {
       content: "";
@@ -470,20 +476,20 @@
 
     <main class="px-4 py-6 sm:px-6 lg:px-8 xl:px-10">
       <section id="gallery" class="space-y-5">
-        <div class="hero glass-card p-5 sm:p-7 lg:p-9">
-          <div class="hero-orb"></div>
-          <div class="relative z-10 max-w-xl">
-            <p class="eyebrow">ImagineWorks Studio</p>
-            <h1 class="serif mt-5 text-4xl leading-[0.96] sm:text-5xl lg:text-7xl">Capturing Your Imagination Into Reality</h1>
-            <p class="mt-5 max-w-md text-sm leading-7 text-stone-300 sm:text-base">Fotografi personal, sport, dan perayaan dalam visual yang elegan, terarah, dan siap dibagikan dengan aman.</p>
-            <div class="mt-6 flex flex-wrap gap-3">
+        <div class="hero bg-neutral-900/90 border border-neutral-800 rounded-3xl p-8 md:p-12">
+          <img id="hero-card-img" class="hidden" src="./assets/imagineworks-hero.jpg" alt="ImagineWorks Studio" />
+          <div class="relative z-10 w-full max-w-2xl mx-auto text-center md:text-left">
+            <p class="eyebrow text-center md:text-left">ImagineWorks Studio</p>
+            <div class="mt-4 flex flex-wrap items-center justify-center gap-2 md:justify-start">
+              <span id="heroEventCategory" class="inline-flex rounded-full border border-gold/20 bg-gold/10 px-2.5 py-1 text-[.62rem] font-medium uppercase tracking-[.18em] text-gold">Sesi Personal</span>
+              <span id="heroEventDate" class="text-[.66rem] uppercase tracking-[.18em] text-stone-300">Jadwalkan sesi</span>
+            </div>
+            <h1 class="serif mt-5 text-4xl leading-[0.96] sm:text-5xl lg:text-6xl xl:text-7xl text-white">Moments, Made Cinematic</h1>
+            <p class="mx-auto mt-5 max-w-xl text-sm leading-7 text-stone-300 sm:text-base md:mx-0">Fotografi personal, sport, dan perayaan dengan gaya visual yang elegan, terarah, dan siap mengabadikan momen paling berharga Anda.</p>
+            <div class="mt-8 flex flex-wrap justify-center gap-3 md:justify-start">
               <button id="heroBookButton" class="btn-primary" type="button">Jadwalkan Sesi</button>
               <button id="heroViewGalleryButton" class="btn-secondary" type="button">Lihat Galeri</button>
             </div>
-          </div>
-          <div class="absolute right-4 bottom-4 z-10 hidden w-56 rounded-2xl border border-white/10 bg-black/25 p-4 backdrop-blur-md lg:block">
-            <div class="text-[.62rem] uppercase tracking-[.18em] text-gold">Studio note</div>
-            <p class="mt-3 text-sm leading-6 text-stone-200">Momen terbaik Anda tidak perlu disimpan rumit. Kami menangkap, mengolah, dan menemani Anda hingga folder foto siap dibuka.</p>
           </div>
         </div>
 
@@ -814,8 +820,8 @@
           category: 'sports_running',
           price_type: 'per_photo',
           price: 15000,
-          photo_url: 'https://images.unsplash.com/photo-1541534401786-2077eed87a74?auto=format&fit=crop&w=1200&q=80',
-          cover_url: 'https://images.unsplash.com/photo-1541534401786-2077eed87a74?auto=format&fit=crop&w=1200&q=80',
+          photo_url: './assets/imagineworks-hero.jpg',
+          cover_url: './assets/imagineworks-hero.jpg',
           created_at: new Date().toISOString()
         },
         {
@@ -825,8 +831,8 @@
           category: 'personal',
           price_type: 'per_photo',
           price: 25000,
-          photo_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80',
-          cover_url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80',
+          photo_url: './assets/imagineworks-hero.jpg',
+          cover_url: './assets/imagineworks-hero.jpg',
           created_at: new Date().toISOString()
         },
         {
@@ -836,8 +842,8 @@
           category: 'celebration',
           price_type: 'package',
           price: 550000,
-          photo_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
-          cover_url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80',
+          photo_url: './assets/imagineworks-hero.jpg',
+          cover_url: './assets/imagineworks-hero.jpg',
           created_at: new Date().toISOString()
         }
       ];
@@ -890,20 +896,53 @@
         activePin: null,
         uploadedPhotoUrl: '',
         uploadedPhotoUrls: [],
-        uploadBusy: false
+        uploadBusy: false,
+        heroSlideIndex: 0,
+        heroTimer: null
       };
 
       const $ = (selector, root = document) => root.querySelector(selector);
       const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
       const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value) || 0);
+      const formatWhatsAppNumber = targetPhone => {
+        const formattedPhone = String(targetPhone || '').replace(/^0/, '62').replace(/[^0-9]/g, '');
+        return formattedPhone || '6285349991313';
+      };
       const safeUrl = value => {
         if (!value) return '';
+
+        if (typeof value !== 'string') {
+          return '';
+        }
+
+        const trimmed = value.trim();
+        if (!trimmed) return '';
+
+        if (/^(?:[a-z]+:)?\/\//i.test(trimmed) || /^\.?\.?\//.test(trimmed) || trimmed.startsWith('./') || trimmed.startsWith('../')) {
+          return trimmed;
+        }
+
         try {
-          const url = new URL(value);
+          const url = new URL(trimmed, window.location.href);
           return url.protocol === 'https:' || url.protocol === 'http:' ? url.href : '';
         } catch {
           return '';
         }
+      };
+      const normalizeAlbumPhotos = event => {
+        const rawPhotos = Array.isArray(event?.photo_urls)
+          ? event.photo_urls
+          : (Array.isArray(event?.photos) ? event.photos : []);
+
+        const photoList = (rawPhotos || [])
+          .flatMap(item => Array.isArray(item) ? item : [item])
+          .map(item => safeUrl(item))
+          .filter(Boolean);
+
+        if (photoList.length) return photoList;
+
+        const fallback = [event?.cover_url, event?.photo_url, event?.gallery_photos].flat().filter(Boolean);
+        return fallback.map(item => safeUrl(item)).filter(Boolean);
       };
       const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[char]));
       const setToast = message => {
@@ -1070,7 +1109,7 @@
           state.events = getStoredEvents();
           renderAlbumGrid();
           renderAdminTable();
-          updateHeroCard();
+          startHeroSlideshow();
           return;
         }
 
@@ -1085,13 +1124,13 @@
           if (!data || !data.length) saveStoredEvents(state.events);
           renderAlbumGrid();
           renderAdminTable();
-          updateHeroCard();
+          startHeroSlideshow();
         } catch (error) {
           state.events = getStoredEvents();
           setToast('Database belum aktif. Menampilkan mode demo lokal.');
           renderAlbumGrid();
           renderAdminTable();
-          updateHeroCard();
+          startHeroSlideshow();
         }
       }
       function renderAlbumGrid() {
@@ -1112,16 +1151,25 @@
         }
 
         grid.innerHTML = filtered.map(event => {
-          const primaryPhoto = Array.isArray(event.photo_urls) ? event.photo_urls[0] : '';
-          const cover = safeUrl(event.cover_url || primaryPhoto || event.photo_url) || 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1200&q=80';
+          const photoList = normalizeAlbumPhotos(event);
+          const cover = photoList[0] || './assets/imagineworks-hero.jpg';
           const typeLabel = CATEGORY_LABELS[event.category] || 'Acara';
           const price = Number(event.price_per_unit || event.price || 0);
           const priceText = event.price_type === 'package' ? 'Paket Event' : 'Per Lembar';
+          const photoData = encodeURIComponent(JSON.stringify(photoList.length ? photoList : [cover]));
+
           return `
             <article class="album-card cursor-pointer" data-event-id="${event.id}">
               <div class="preview-frame">
                 <div class="cover-tag">${escapeHtml(typeLabel)}</div>
-                <img src="${cover}" alt="${escapeHtml(event.title)}" class="preview-image" loading="lazy" />
+                <img
+                  src="${cover}"
+                  alt="${escapeHtml(event.title)}"
+                  class="preview-image album-loop-image transition-opacity duration-300"
+                  data-album-photos="${photoData}"
+                  data-default-cover="${encodeURIComponent(cover)}"
+                  loading="lazy"
+                />
                 <div class="watermark">
                   <span>IMAGINEWORKS</span><span>STUDIO</span><span>IMAGINEWORKS</span>
                   <span>STUDIO</span><span>IMAGINEWORKS</span><span>STUDIO</span>
@@ -1162,6 +1210,61 @@
             if (selected) openGalleryDetail(selected);
           });
         });
+
+        $$('.album-loop-image').forEach(img => {
+          let albumPhotos = [];
+          let currentIndex = 0;
+          let loopTimer = null;
+
+          try {
+            albumPhotos = JSON.parse(decodeURIComponent(img.dataset.albumPhotos || '[]'));
+          } catch {
+            albumPhotos = [];
+          }
+
+          if (!albumPhotos.length) {
+            const fallbackCover = decodeURIComponent(img.dataset.defaultCover || encodeURIComponent('./assets/imagineworks-hero.jpg'));
+            img.src = fallbackCover;
+            return;
+          }
+
+          const setSlide = index => {
+            currentIndex = (index + albumPhotos.length) % albumPhotos.length;
+            const nextSrc = albumPhotos[currentIndex];
+            if (!nextSrc || img.src === nextSrc) return;
+            img.style.opacity = '0.2';
+            setTimeout(() => {
+              img.src = nextSrc;
+              img.style.opacity = '1';
+            }, 180);
+          };
+
+          const resetSlide = () => {
+            clearInterval(loopTimer);
+            loopTimer = null;
+            img.style.opacity = '1';
+            img.src = albumPhotos[0];
+            currentIndex = 0;
+          };
+
+          img.addEventListener('mouseenter', () => {
+            if (albumPhotos.length < 2) return;
+            clearInterval(loopTimer);
+            loopTimer = setInterval(() => {
+              setSlide(currentIndex + 1);
+            }, 700);
+          });
+
+          img.addEventListener('mouseleave', resetSlide);
+          img.addEventListener('focus', () => {
+            if (albumPhotos.length > 1) {
+              clearInterval(loopTimer);
+              loopTimer = setInterval(() => setSlide(currentIndex + 1), 700);
+            }
+          });
+          img.addEventListener('blur', resetSlide);
+          img.src = albumPhotos[0];
+        });
       }
 
       function loadAdminEventsTable() {
@@ -1172,26 +1275,88 @@
         renderAlbumGrid();
       }
 
+      function getHeroSlides() {
+        const slides = state.events.flatMap(event => {
+          const photoCandidates = Array.isArray(event.photo_urls) ? event.photo_urls : [];
+          const candidates = [...photoCandidates, event.cover_url, event.photo_url, event.gallery_photos].flat().filter(Boolean);
+          const uniqueUrls = [];
+          const seen = new Set();
+
+          candidates.forEach(candidate => {
+            const url = safeUrl(candidate);
+            if (!url || seen.has(url)) return;
+            seen.add(url);
+            uniqueUrls.push(url);
+          });
+
+          if (!uniqueUrls.length) return [];
+          return uniqueUrls.map(imageUrl => ({
+            title: event.title || 'Capturing Your Imagination Into Reality',
+            event_date: event.event_date || 'Jadwalkan sesi',
+            category: event.category || 'personal',
+            imageUrl
+          }));
+        });
+
+        return slides.length ? slides : [{
+          title: 'Capturing Your Imagination Into Reality',
+          event_date: 'Jadwalkan sesi',
+          category: 'personal',
+          imageUrl: './assets/imagineworks-hero.jpg'
+        }];
+      }
+
       function updateHeroCard() {
         const hero = document.querySelector('.hero');
         if (!hero) return;
 
         const defaultImage = './assets/imagineworks-hero.jpg';
-        const latest = state.events.length
-          ? state.events.reduce((current, item) => {
-              const currentTime = new Date(current?.created_at || current?.event_date || '1970-01-01').getTime();
-              const itemTime = new Date(item?.created_at || item?.event_date || '1970-01-01').getTime();
-              return itemTime > currentTime ? item : current;
-            }, state.events[0])
-          : null;
+        const slideImage = document.getElementById('hero-card-img');
+        const slides = getHeroSlides();
+        if (!slides.length) return;
 
-        const primaryPhoto = Array.isArray(latest?.photo_urls) ? latest.photo_urls[0] : '';
-        const imageUrl = latest ? safeUrl(latest.cover_url || primaryPhoto || latest.photo_url) || defaultImage : defaultImage;
+        if (state.heroSlideIndex >= slides.length) {
+          state.heroSlideIndex = 0;
+        }
+
+        const slide = slides[state.heroSlideIndex] || slides[0];
+        const coverPhotoUrl = slide.imageUrl || defaultImage;
         const heroTitle = hero.querySelector('h1');
-        const titleText = latest ? latest.title : 'Capturing Your Imagination Into Reality';
+        const heroDate = hero.querySelector('#heroEventDate');
+        const heroCategory = hero.querySelector('#heroEventCategory');
 
-        hero.style.background = `linear-gradient(90deg, rgba(18,18,18,.97), rgba(18,18,18,.82) 52%, rgba(18,18,18,.28)), url('${imageUrl}') center 52%/cover no-repeat`;
-        if (heroTitle) heroTitle.textContent = titleText;
+        if (slideImage) {
+          slideImage.style.opacity = '0.3';
+          setTimeout(() => {
+            slideImage.src = coverPhotoUrl;
+            slideImage.style.opacity = '1';
+          }, 180);
+        }
+
+        if (heroTitle) heroTitle.textContent = slide.title || 'Capturing Your Imagination Into Reality';
+        if (heroDate) heroDate.textContent = slide.event_date || 'Jadwalkan sesi';
+        if (heroCategory) heroCategory.textContent = CATEGORY_LABELS[slide.category] || 'Studio';
+      }
+
+      function startHeroSlideshow() {
+        if (state.heroTimer) {
+          clearInterval(state.heroTimer);
+        }
+
+        const slides = getHeroSlides();
+        if (!slides.length) return;
+
+        state.heroSlideIndex = 0;
+        updateHeroCard();
+
+        if (slides.length > 1) {
+          state.heroTimer = setInterval(() => {
+            const slidePool = getHeroSlides();
+            if (!slidePool.length) return;
+            state.heroSlideIndex = (state.heroSlideIndex + 1) % slidePool.length;
+            updateHeroCard();
+          }, 4000);
+        }
       }
 
       function openGalleryDetail(event) {
@@ -1334,9 +1499,11 @@
           if (!name || !phone) return setToast('Isi nama dan nomor WhatsApp sebelum konfirmasi.');
 
           const total = getSelectedTotal();
-          const whatsappNumber = String(CONFIG.BOOKING_WHATSAPP || '').replace(/\D/g, '');
-          const text = encodeURIComponent(`Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Mohon PIN aksesnya. Nama: ${name}. WhatsApp: ${phone}.`);
-          const link = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${text}` : `https://wa.me/?text=${text}`;
+          const targetPhone = formatWhatsAppNumber(CONFIG.BOOKING_WHATSAPP || '6285349991313');
+          const messageText = `Halo Admin ImagineWorks, saya sudah transfer ${money(total)} untuk ${event.title}. Mohon PIN aksesnya. Nama: ${name}. WhatsApp: ${phone}.`;
+          const formattedPhone = String(targetPhone || '').replace(/^0/, '62').replace(/[^0-9]/g, '');
+          const cleanPhone = formattedPhone || '6285349991313';
+          const link = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(messageText)}`;
           window.open(link, '_blank', 'noopener');
           setToast('Pesan WhatsApp berhasil dibuat.');
         });
@@ -1432,7 +1599,7 @@
         eventCategory.value = 'personal';
         eventPriceType.value = 'per_photo';
         eventPrice.value = '25000';
-        eventCoverUrl.value = 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1200&q=80';
+        eventCoverUrl.value = './assets/imagineworks-hero.jpg';
       }
 
       function resetEventForm() {
@@ -1533,7 +1700,7 @@
           state.events = all;
           renderAlbumGrid();
           renderAdminTable();
-          updateHeroCard();
+          startHeroSlideshow();
           resetEventForm();
           alert('Event berhasil disimpan!');
           return;
@@ -1570,7 +1737,7 @@
         alert('Event berhasil disimpan!');
         resetEventForm();
         loadEvents();
-        updateHeroCard();
+        startHeroSlideshow();
       }
 
       async function saveEvent() {
